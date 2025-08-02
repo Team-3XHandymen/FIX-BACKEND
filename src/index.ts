@@ -1,24 +1,64 @@
 import express, { Express, Request, Response } from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
-import authRoutes from './routes/auth.routes';
+import { connectDB } from './config/database';
+import { config } from './config/env';
 import serviceRoutes from './routes/services.routes';
-
-dotenv.config();
+import bookingRoutes from './routes/bookings.routes';
 
 const app: Express = express();
-const port = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+// Connect to MongoDB
+connectDB();
 
-app.use('/api/auth', authRoutes);
+// Middleware
+app.use(cors({
+  origin: ['http://localhost:8080', 'http://localhost:5173', config.CORS_ORIGIN],
+  credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
 app.use('/api/services', serviceRoutes);
+app.use('/api/bookings', bookingRoutes);
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Handyman App API',
+    version: '1.0.0',
+  });
+});
+
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+  });
+});
+
+// 404 handler
+app.use('*', (req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+  });
+});
+
+app.listen(config.PORT, () => {
+  console.log(`🚀 Server is running at http://localhost:${config.PORT}`);
+  console.log(`📊 Environment: ${config.NODE_ENV}`);
+  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN}`);
 }); 
