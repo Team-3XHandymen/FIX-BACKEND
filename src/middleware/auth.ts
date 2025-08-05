@@ -4,8 +4,10 @@ import { Request, Response, NextFunction } from 'express';
 declare global {
   namespace Express {
     interface Request {
-      userId?: string; // Clerk user ID
-      userType?: 'client' | 'provider';
+      user?: {
+        id: string; // Clerk user ID
+        type?: 'client' | 'provider';
+      };
     }
   }
 }
@@ -34,8 +36,10 @@ export const auth = (req: Request, res: Response, next: NextFunction): void => {
       return;
     }
 
-    req.userId = userId;
-    req.userType = userType;
+    req.user = {
+      id: userId,
+      type: userType,
+    };
     next();
   } catch (error) {
     res.status(401).json({
@@ -49,7 +53,7 @@ export const auth = (req: Request, res: Response, next: NextFunction): void => {
 // Middleware to authorize specific user types
 export const authorize = (...userTypes: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.userId) {
+    if (!req.user) {
       res.status(401).json({
         success: false,
         message: 'Access denied. User not authenticated.',
@@ -57,7 +61,7 @@ export const authorize = (...userTypes: string[]) => {
       return;
     }
 
-    if (!req.userType || !userTypes.includes(req.userType)) {
+    if (!req.user.type || !userTypes.includes(req.user.type)) {
       res.status(403).json({
         success: false,
         message: 'Access denied. Insufficient permissions.',

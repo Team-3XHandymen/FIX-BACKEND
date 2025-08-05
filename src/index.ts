@@ -4,6 +4,7 @@ import { connectDB } from './config/database';
 import { config } from './config/env';
 import serviceRoutes from './routes/services.routes';
 import bookingRoutes from './routes/bookings.routes';
+import handymanRoutes from './routes/handyman.routes';
 
 const app: Express = express();
 
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/handyman', handymanRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
