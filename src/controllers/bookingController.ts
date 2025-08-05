@@ -8,7 +8,7 @@ import { ApiResponse, CreateBookingRequest, UpdateBookingRequest } from '../type
 export const createBooking = async (req: Request, res: Response): Promise<void> => {
   try {
     const { description, location, providerId, serviceId, scheduledTime }: CreateBookingRequest = req.body;
-    const clientId = req.userId!; // From auth middleware
+    const clientId = req.user!.id; // From auth middleware
     
     // Validate that the provider exists
     const provider = await ServiceProvider.findOne({ userId: providerId });
@@ -59,8 +59,8 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
 // Get bookings for current user (client or provider)
 export const getMyBookings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.userId!;
-    const userType = req.userType!;
+    const userId = req.user!.id;
+    const userType = req.user!.type!;
     
     let query: any = {};
     
@@ -92,7 +92,7 @@ export const getMyBookings = async (req: Request, res: Response): Promise<void> 
 export const getBookingById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const userId = req.userId!;
+    const userId = req.user!.id;
     
     const booking = await Booking.findById(id)
       .populate('serviceId', 'name baseFee');
@@ -133,8 +133,8 @@ export const updateBooking = async (req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     const { status, fee, description }: UpdateBookingRequest = req.body;
-    const userId = req.userId!;
-    const userType = req.userType!;
+    const userId = req.user!.id;
+    const userType = req.user!.type!;
     
     const booking = await Booking.findById(id);
     
@@ -221,7 +221,7 @@ const updateProviderStats = async (providerId: string, bookingId: string, fee: n
 // Get pending bookings for providers
 export const getPendingBookings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const providerId = req.userId!;
+    const providerId = req.user!.id;
     
     const bookings = await Booking.find({
       providerId,
