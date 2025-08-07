@@ -2,20 +2,15 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IProviderPrivateDataDocument extends Document {
   userId: string; // Clerk user ID
-  // Personal Information
   name: string;
   nic: string;
   contactNumber: string;
   emailAddress: string;
   personalPhoto: string;
-  
-  // Professional Information
   skills: string[];
-  experience: number; // Number of years
+  experience: number;
   certifications: string[];
-  services: string[]; // Service IDs from services collection
-  
-  // Location & Availability
+  services: string[];
   address: {
     street: string;
     city: string;
@@ -30,11 +25,7 @@ export interface IProviderPrivateDataDocument extends Document {
     workingDays: string;
     workingHours: string;
   };
-  
-  // Payment & Business
   paymentMethod: string;
-  
-  // System Data
   totalEarnings: number;
   upcomingBookings: string[];
   schedule: {
@@ -53,9 +44,7 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
   userId: {
     type: String,
     required: true,
-    unique: true,
   },
-  // Personal Information
   name: {
     type: String,
     required: true,
@@ -80,8 +69,6 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     required: true,
   },
-  
-  // Professional Information
   skills: [{
     type: String,
     trim: true,
@@ -99,8 +86,6 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     required: true,
   }],
-  
-  // Location & Availability
   address: {
     street: {
       type: String,
@@ -139,15 +124,11 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
       trim: true,
     },
   },
-  
-  // Payment & Business
   paymentMethod: {
     type: String,
     required: true,
     trim: true,
   },
-  
-  // System Data
   totalEarnings: {
     type: Number,
     default: 0,
@@ -185,10 +166,13 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
   timestamps: true,
 });
 
-// Index for better query performance
-providerPrivateDataSchema.index({ userId: 1 });
-providerPrivateDataSchema.index({ 'address.city': 1, 'address.state': 1 });
-providerPrivateDataSchema.index({ services: 1 });
-providerPrivateDataSchema.index({ skills: 1 });
+// ✅ Centralized, optimized indexes
+providerPrivateDataSchema.index({ userId: 1 }, { unique: true, sparse: true  });                  // Unique index for userId
+providerPrivateDataSchema.index({ 'address.city': 1, 'address.state': 1 });        // For location-based filtering
+providerPrivateDataSchema.index({ services: 1 });                                  // For filtering by service
+providerPrivateDataSchema.index({ skills: 1 });                                    // For filtering by skills
 
-export const ProviderPrivateData = mongoose.model<IProviderPrivateDataDocument>('ProviderPrivateData', providerPrivateDataSchema); 
+export const ProviderPrivateData = mongoose.model<IProviderPrivateDataDocument>(
+  'ProviderPrivateData',
+  providerPrivateDataSchema
+);

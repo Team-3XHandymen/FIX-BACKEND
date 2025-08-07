@@ -27,7 +27,6 @@ const clientSchema = new Schema<IClientDocument>({
   userId: {
     type: String,
     required: true,
-    unique: true,
   },
   name: {
     type: String,
@@ -83,9 +82,9 @@ const clientSchema = new Schema<IClientDocument>({
   timestamps: true,
 });
 
-// Index for better query performance
-clientSchema.index({ userId: 1 });
-clientSchema.index({ 'address.city': 1, 'address.state': 1 });
-clientSchema.index({ location: 1 });
+// ✅ Define indexes cleanly here — NO duplicate field-based `index: true`
+clientSchema.index({ userId: 1 }, { unique: true });                           // Unique index for Clerk user ID
+clientSchema.index({ 'address.city': 1, 'address.state': 1 });                // For filtering by city/state
+clientSchema.index({ location: 1 });                                          // For general region filtering
 
-export const Client = mongoose.model<IClientDocument>('Client', clientSchema); 
+export const Client = mongoose.model<IClientDocument>('Client', clientSchema);
