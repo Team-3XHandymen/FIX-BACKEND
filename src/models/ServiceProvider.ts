@@ -25,7 +25,6 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
   userId: {
     type: String,
     required: true,
-    unique: true,
   },
   serviceIds: [{
     type: String,
@@ -81,10 +80,10 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
   timestamps: true,
 });
 
-// Index for better query performance
-serviceProviderSchema.index({ userId: 1 });
-serviceProviderSchema.index({ 'location.city': 1, 'location.area': 1 });
+// Indexes for query optimization
+serviceProviderSchema.index({ userId: 1 },{ unique: true});
 serviceProviderSchema.index({ serviceIds: 1 });
 serviceProviderSchema.index({ rating: -1 });
+serviceProviderSchema.index({ 'location.city': 1, 'location.area': 1 });
 
-export const ServiceProvider = mongoose.model<IServiceProviderDocument>('ServiceProvider', serviceProviderSchema); 
+export const ServiceProvider = mongoose.model<IServiceProviderDocument>('ServiceProvider', serviceProviderSchema);

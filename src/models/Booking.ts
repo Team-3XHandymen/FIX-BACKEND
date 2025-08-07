@@ -22,8 +22,6 @@ export interface IBookingDocument extends Document {
 const bookingSchema = new Schema<IBookingDocument>({
   bookingId: {
     type: String,
-    unique: true,
-    sparse: true,
   },
   status: {
     type: String,
@@ -83,12 +81,12 @@ bookingSchema.pre('save', function(next) {
   next();
 });
 
-// Index for better query performance
-bookingSchema.index({ bookingId: 1 });
-bookingSchema.index({ clientId: 1, status: 1 });
-bookingSchema.index({ providerId: 1, status: 1 });
-bookingSchema.index({ serviceId: 1 });
-bookingSchema.index({ scheduledTime: 1 });
-bookingSchema.index({ status: 1 });
+// 🔽 Indexes (clean, non-duplicated)
+bookingSchema.index({ bookingId: 1 }, { unique: true, sparse: true }); // Optional unique booking ID
+bookingSchema.index({ clientId: 1, status: 1 });                       // For client-based booking queries
+bookingSchema.index({ providerId: 1, status: 1 });                     // For provider-based booking queries
+bookingSchema.index({ serviceId: 1 });                                 // For filtering by service
+bookingSchema.index({ status: 1 });                                    // For filtering by booking status
+bookingSchema.index({ scheduledTime: 1 });                             // For filtering or sorting by date/time
 
-export const Booking = mongoose.model<IBookingDocument>('Booking', bookingSchema); 
+export const Booking = mongoose.model<IBookingDocument>('Booking', bookingSchema);

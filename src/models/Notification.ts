@@ -35,9 +35,8 @@ const notificationSchema = new Schema<INotificationDocument>({
   timestamps: true,
 });
 
-// Index for better query performance
-notificationSchema.index({ userId: 1 });
-notificationSchema.index({ userId: 1, read: 1 });
-notificationSchema.index({ createdAt: -1 });
+// ✅ Optimized indexes — no duplicates
+notificationSchema.index({ userId: 1, read: 1 });  // For filtering unread/read per user
+notificationSchema.index({ createdAt: -1 });       // For sorting by latest notifications
 
-export const Notification = mongoose.model<INotificationDocument>('Notification', notificationSchema); 
+export const Notification = mongoose.model<INotificationDocument>('Notification', notificationSchema);
