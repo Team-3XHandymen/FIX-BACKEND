@@ -3,7 +3,8 @@ import {
   registerHandyman,
   getHandymanProfile,
   updateHandymanProfile,
-  getAllHandymen
+  getAllHandymen,
+  getServiceProvidersByServiceId
 } from '../controllers/handymanController';
 import { auth, requireProvider } from '../middleware/auth';
 
@@ -16,5 +17,8 @@ router.put('/profile', auth, updateHandymanProfile);
 
 // Admin routes (for managing handymen)
 router.get('/all', auth, requireProvider, getAllHandymen);
+
+// Public route to get service providers by service ID
+router.get('/service/:serviceId', getServiceProvidersByServiceId);
 
 export default router; 

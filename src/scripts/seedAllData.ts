@@ -289,8 +289,36 @@ const seedAllData = async () => {
 
     // 4. Seed Provider Private Data
     console.log('💰 Seeding provider private data...');
-    const providerPrivateData = insertedProviders.map(provider => ({
+    const providerNames = [
+      "Sapumal Chandrasiri",
+      "Udayanga Perera", 
+      "Nimal Basnayake",
+      "Piyal Alahakon",
+      "Kamal Silva"
+    ];
+    
+    const providerPrivateData = insertedProviders.map((provider, index) => ({
       userId: provider.userId,
+      name: providerNames[index] || `Provider ${index + 1}`,
+      nic: `NIC${String(index + 1).padStart(3, '0')}`,
+      contactNumber: `+94${Math.floor(Math.random() * 90000000) + 10000000}`,
+      emailAddress: `provider${index + 1}@example.com`,
+      personalPhoto: "https://via.placeholder.com/150",
+      skills: provider.skills || [],
+      experience: parseInt(provider.experience) || 5,
+      certifications: ["Professional Certification"],
+      services: provider.serviceIds || [],
+      address: {
+        street: `${index + 1} Main Street`,
+        city: provider.location.city,
+        state: provider.location.area,
+        zipCode: "10000"
+      },
+      availability: {
+        workingDays: "Monday to Friday",
+        workingHours: "9 AM to 6 PM"
+      },
+      paymentMethod: "Bank Transfer",
       totalEarnings: Math.floor(Math.random() * 5000) + 1000,
       upcomingBookings: [],
       schedule: {},
