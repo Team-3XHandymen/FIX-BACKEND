@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ProviderPrivateData } from '../models/ProviderPrivateData';
 import { ServiceProvider } from '../models/ServiceProvider';
+import { Service } from '../models/Service';
 import { ApiResponse } from '../types';
 
 // Register a new handyman
@@ -211,6 +212,89 @@ export const getAllHandymen = async (req: Request, res: Response): Promise<void>
     } as ApiResponse);
   } catch (error) {
     console.error('Get all handymen error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
+};
+
+// Get service providers by service ID
+export const getServiceProvidersByServiceId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { serviceId } = req.params;
+
+    if (!serviceId) {
+      res.status(400).json({
+        success: false,
+        message: 'Service ID is required.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Find service providers that offer this service
+    const serviceProviders = await ServiceProvider.find({
+      serviceIds: serviceId
+    });
+
+    if (!serviceProviders.length) {
+      res.json({
+        success: true,
+        message: 'No service providers found for this service.',
+        data: [],
+      } as ApiResponse);
+      return;
+    }
+
+    // Get the user IDs of these service providers
+    const userIds = serviceProviders.map(provider => provider.userId);
+
+    // Get the private data (names, etc.) for these providers
+    const providerPrivateData = await ProviderPrivateData.find({
+      userId: { $in: userIds }
+    });
+
+    // Get all services to map service IDs to service names
+    const allServices = await Service.find({}, '_id name');
+    const serviceMap = new Map(allServices.map(service => [(service._id as any).toString(), service.name]));
+
+    // Combine the data
+    const combinedProviders = serviceProviders.map(provider => {
+      const privateData = providerPrivateData.find(p => p.userId === provider.userId);
+      
+      // Get service names for this provider
+      const serviceNames = provider.serviceIds
+        .map(serviceId => serviceMap.get(serviceId.toString()))
+        .filter(Boolean); // Remove any undefined values
+      
+      const result = {
+        _id: provider._id,
+        userId: provider.userId,
+        name: privateData?.name || 'Unknown Provider',
+        status: "Available Now", // You can implement availability logic here
+        title: serviceNames.join(', ') || provider.bio,
+        rating: provider.rating,
+        reviews: Math.floor(Math.random() * 200) + 50, // Dummy reviews count
+        jobsCompleted: provider.doneJobsCount,
+        yearsExp: parseInt(provider.experience.replace(/\D/g, '')) || 0,
+        distance: (Math.random() * 5 + 1).toFixed(1), // Dummy distance
+        services: serviceNames, // Replace skills with services
+        bio: provider.bio,
+        location: provider.location,
+        availability: provider.availability,
+      };
+      
+      console.log(`Provider ${result.name} - Services: ${result.services}, Title: ${result.title}`); // Debug log
+      return result;
+    });
+
+    res.json({
+      success: true,
+      message: 'Service providers retrieved successfully.',
+      data: combinedProviders,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Get service providers by service ID error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error.',
