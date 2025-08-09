@@ -260,8 +260,6 @@ export const getServiceProvidersByServiceId = async (req: Request, res: Response
 
     // Combine the data
     const combinedProviders = serviceProviders.map(provider => {
-      const privateData = providerPrivateData.find(p => p.userId === provider.userId);
-      
       // Get service names for this provider
       const serviceNames = provider.serviceIds
         .map(serviceId => serviceMap.get(serviceId.toString()))
@@ -270,7 +268,7 @@ export const getServiceProvidersByServiceId = async (req: Request, res: Response
       const result = {
         _id: provider._id,
         userId: provider.userId,
-        name: privateData?.name || 'Unknown Provider',
+        name: provider.name, // Use name directly from ServiceProvider
         status: "Available Now", // You can implement availability logic here
         title: serviceNames.join(', ') || provider.bio,
         rating: provider.rating,
@@ -284,7 +282,7 @@ export const getServiceProvidersByServiceId = async (req: Request, res: Response
         availability: provider.availability,
       };
       
-      console.log(`Provider ${result.name} - Services: ${result.services}, Title: ${result.title}`); // Debug log
+      
       return result;
     });
 

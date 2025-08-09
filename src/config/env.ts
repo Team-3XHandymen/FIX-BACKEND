@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Load .env file from the backend root directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const config = {
   // Server
@@ -8,17 +10,17 @@ export const config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Database
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb+srv://nppramuv0:kaZEGbKUxRQEsxUv@fix.dov1mbr.mongodb.net/?retryWrites=true&w=majority&appName=FIX',
+  MONGODB_URI: process.env.MONGODB_URI || '',
   
   // CORS
-  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:8080',
+  CORS_ORIGIN: process.env.CORS_ORIGIN || '',
   
   // Authentication (Clerk)
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || '',
   CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY || '',
   
   // JWT Configuration (fallback)
-  JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+  JWT_SECRET: process.env.JWT_SECRET || '',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   
   // File Upload
@@ -26,7 +28,7 @@ export const config = {
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '5242880'), // 5MB
   
   // Email Configuration
-  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_HOST: process.env.SMTP_HOST || '',
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587'),
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASS: process.env.SMTP_PASS || '',
@@ -42,7 +44,7 @@ export const config = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
   
   // Redis Configuration
-  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+  REDIS_URL: process.env.REDIS_URL || '',
   
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
