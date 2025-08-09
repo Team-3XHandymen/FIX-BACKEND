@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IServiceProviderDocument extends Document {
   userId: string; // Clerk user ID
+  name: string; // Handyman name
   serviceIds: string[];
   experience: string;
   rating: number;
@@ -25,6 +26,11 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
   userId: {
     type: String,
     required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true,
   },
   serviceIds: [{
     type: String,

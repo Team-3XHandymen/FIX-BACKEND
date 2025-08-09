@@ -13,7 +13,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001', config.CORS_ORIGIN],
+  origin: config.CORS_ORIGIN ? [config.CORS_ORIGIN] : false,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -60,7 +60,7 @@ app.use('*', (req: Request, res: Response) => {
 });
 
 app.listen(config.PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${config.PORT}`);
+  console.log(`🚀 Server is running on port ${config.PORT}`);
   console.log(`📊 Environment: ${config.NODE_ENV}`);
-  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN}`);
+  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN || 'Not configured'}`);
 }); 

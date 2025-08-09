@@ -2,14 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "start": "ts-node src/index.ts",
-    "dev": "ts-node src/index.ts",
-    "seed": "ts-node src/scripts/seedServices.ts",
-    "seed:all": "ts-node src/scripts/seedAllData.ts",
-    "test": "ts-node src/scripts/testAPI.ts",
-    "test:api": "ts-node src/scripts/testAPI.ts"
-  },
+      "scripts": {
+      "start": "ts-node src/index.ts",
+      "dev": "ts-node src/index.ts",
+      "seed:all": "ts-node src/scripts/seedAllData.ts",
+      "seed:providers": "ts-node src/scripts/addMoreServiceProviders.ts",
+      "clear:collections": "ts-node src/scripts/clearCollections.ts"
+    },
   "keywords": [],
   "author": "",
   "license": "ISC",
