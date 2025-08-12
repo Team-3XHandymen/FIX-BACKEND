@@ -3,6 +3,7 @@ import { ProviderPrivateData } from '../models/ProviderPrivateData';
 import { ServiceProvider } from '../models/ServiceProvider';
 import { Service } from '../models/Service';
 import { ApiResponse } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Register a new handyman
 export const registerHandyman = async (req: Request, res: Response): Promise<void> => {
@@ -22,27 +23,110 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       paymentMethod
     } = req.body;
 
-    const userId = req.user?.id;
-
-    if (!userId) {
-      res.status(401).json({
-        success: false,
-        message: 'User not authenticated.',
-      } as ApiResponse);
-      return;
-    }
-
-    // Check if handyman already exists
-    const existingHandyman = await ProviderPrivateData.findOne({ userId });
-    if (existingHandyman) {
+    // Validate required fields
+    if (!name || !nic || !contactNumber || !emailAddress || !personalPhoto || !skills || !experience || !services || !address || !availability || !paymentMethod) {
       res.status(400).json({
         success: false,
-        message: 'Handyman already registered.',
+        message: 'Missing required fields. Please provide all required information.',
+        missingFields: {
+          name: !name,
+          nic: !nic,
+          contactNumber: !contactNumber,
+          emailAddress: !emailAddress,
+          personalPhoto: !personalPhoto,
+          skills: !skills,
+          experience: !experience,
+          services: !services,
+          address: !address,
+          availability: !availability,
+          paymentMethod: !paymentMethod
+        }
       } as ApiResponse);
       return;
     }
 
-    // Create new handyman private data
+    // Validate address fields
+    if (!address.street || !address.city || !address.state || !address.zipCode) {
+      res.status(400).json({
+        success: false,
+        message: 'Missing required address fields. Please provide street, city, state, and zip code.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Validate availability fields
+    if (!availability.workingDays || !availability.workingHours) {
+      res.status(400).json({
+        success: false,
+        message: 'Missing required availability fields. Please provide working days and hours.',
+      } as ApiResponse);
+      return;
+    }
+
+    // For registration, generate a new userId since user is not authenticated yet
+    const userId = req.user?.id || uuidv4();
+
+    // Check if handyman already exists by email or NIC
+    const existingHandymanByEmail = await ProviderPrivateData.findOne({ emailAddress });
+    const existingHandymanByNIC = await ProviderPrivateData.findOne({ nic });
+    
+    if (existingHandymanByEmail) {
+      res.status(400).json({
+        success: false,
+        message: 'A handyman with this email address is already registered.',
+      } as ApiResponse);
+      return;
+    }
+
+    if (existingHandymanByNIC) {
+      res.status(400).json({
+        success: false,
+        message: 'A handyman with this NIC is already registered.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Map service names to service IDs
+    let serviceIds: string[] = [];
+    if (services && services.length > 0) {
+      // Find services by name and get their IDs
+      const foundServices = await Service.find({ 
+        name: { $in: services.map((s: string) => new RegExp(s, 'i')) }
+      });
+      serviceIds = foundServices.map(service => service._id?.toString() || '');
+      
+      // If no services found, create them (this handles the case where services don't exist yet)
+      if (serviceIds.length === 0) {
+        for (const serviceName of services) {
+          if (serviceName !== 'other') { // Skip 'other' as it's not a real service
+            const newService = new Service({
+              name: serviceName,
+              description: `${serviceName} services`,
+              baseFee: 50, // Default base fee
+              imageUrl: '', // Default empty image
+              usageCount: 0
+            });
+            const savedService = await newService.save();
+            if (savedService._id) {
+              serviceIds.push(savedService._id.toString());
+            }
+          }
+        }
+      }
+    }
+
+    // Filter out empty service IDs
+    serviceIds = serviceIds.filter(id => id !== '');
+
+    if (serviceIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'No valid services provided. Please select at least one service.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Create new handyman private data with default values for optional fields
     const handymanPrivateData = new ProviderPrivateData({
       userId,
       name,
@@ -52,11 +136,25 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       personalPhoto,
       skills,
       experience,
-      certifications,
-      services,
-      address,
-      availability,
+      certifications: certifications || [],
+      services: serviceIds,
+      address: {
+        street: address.street,
+        city: address.city,
+        state: address.state,
+        zipCode: address.zipCode,
+        coordinates: address.coordinates || undefined, // Make coordinates optional
+      },
+      availability: {
+        workingDays: availability.workingDays,
+        workingHours: availability.workingHours,
+      },
       paymentMethod,
+      totalEarnings: 0,
+      upcomingBookings: [],
+      schedule: {},
+      notifications: [], // Empty array for notifications
+      oldBookings: [],
     });
 
     await handymanPrivateData.save();
@@ -64,13 +162,14 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
     // Create public service provider profile
     const serviceProvider = new ServiceProvider({
       userId,
-      serviceIds: services,
+      name,
+      serviceIds: serviceIds,
       experience: `${experience} years`,
       rating: 0,
       location: {
         city: address.city,
         area: address.state,
-        coordinates: address.coordinates,
+        coordinates: address.coordinates || undefined,
       },
       skills,
       bio: `Experienced handyman with ${experience} years of experience in ${skills.join(', ')}.`,
@@ -86,10 +185,23 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       data: {
         handymanId: handymanPrivateData._id,
         serviceProviderId: serviceProvider._id,
+        userId: userId,
       },
     } as ApiResponse);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Register handyman error:', error);
+    
+    // Check if it's a Mongoose validation error
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors,
+      } as ApiResponse);
+      return;
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Internal server error.',

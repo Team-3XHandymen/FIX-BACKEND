@@ -2,24 +2,26 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-      "scripts": {
-      "start": "ts-node src/index.ts",
-      "dev": "ts-node src/index.ts",
-      "seed:all": "ts-node src/scripts/seedAllData.ts",
-      "seed:providers": "ts-node src/scripts/addMoreServiceProviders.ts",
-      "clear:collections": "ts-node src/scripts/clearCollections.ts"
-    },
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "dev": "ts-node src/index.ts",
+    "seed:all": "ts-node src/scripts/seedAllData.ts",
+    "seed:providers": "ts-node src/scripts/addMoreServiceProviders.ts",
+    "clear:collections": "ts-node src/scripts/clearCollections.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@types/mongoose": "^5.11.96",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "mongoose": "^8.17.0"
+    "mongoose": "^8.17.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
