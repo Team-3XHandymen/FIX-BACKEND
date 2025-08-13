@@ -24,7 +24,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
     } = req.body;
 
     // Validate required fields
-    if (!name || !nic || !contactNumber || !emailAddress || !personalPhoto || !skills || !experience || !services || !address || !availability || !paymentMethod) {
+    if (!name || !nic || !contactNumber || !emailAddress || !skills || !experience || !address) {
       res.status(400).json({
         success: false,
         message: 'Missing required fields. Please provide all required information.',
@@ -33,34 +33,28 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
           nic: !nic,
           contactNumber: !contactNumber,
           emailAddress: !emailAddress,
-          personalPhoto: !personalPhoto,
           skills: !skills,
           experience: !experience,
-          services: !services,
-          address: !address,
-          availability: !availability,
-          paymentMethod: !paymentMethod
+          address: !address
         }
       } as ApiResponse);
       return;
     }
 
     // Validate address fields
-    if (!address.street || !address.city || !address.state || !address.zipCode) {
+    if (!address.city || !address.state) {
       res.status(400).json({
         success: false,
-        message: 'Missing required address fields. Please provide street, city, state, and zip code.',
+        message: 'Missing required address fields. Please provide at least city and state.',
       } as ApiResponse);
       return;
     }
 
     // Validate availability fields
     if (!availability.workingDays || !availability.workingHours) {
-      res.status(400).json({
-        success: false,
-        message: 'Missing required availability fields. Please provide working days and hours.',
-      } as ApiResponse);
-      return;
+      // Set default values if not provided
+      if (!availability.workingDays) availability.workingDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      if (!availability.workingHours) availability.workingHours = ['9:00 AM - 5:00 PM'];
     }
 
     // For registration, generate a new userId since user is not authenticated yet
@@ -86,7 +80,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       return;
     }
 
-    // Map service names to service IDs
+        // Map service names to service IDs
     let serviceIds: string[] = [];
     if (services && services.length > 0) {
       // Find services by name and get their IDs
@@ -114,16 +108,28 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
         }
       }
     }
-
+    
     // Filter out empty service IDs
     serviceIds = serviceIds.filter(id => id !== '');
-
+    
+    // If no services provided, use skills as services
+    if (serviceIds.length === 0 && skills && skills.length > 0) {
+      serviceIds = skills; // Use skills as service IDs for now
+    }
+    
+    // If still no services, create a default service
     if (serviceIds.length === 0) {
-      res.status(400).json({
-        success: false,
-        message: 'No valid services provided. Please select at least one service.',
-      } as ApiResponse);
-      return;
+      const defaultService = new Service({
+        name: 'General Handyman',
+        description: 'General handyman services',
+        baseFee: 50,
+        imageUrl: '',
+        usageCount: 0
+      });
+      const savedDefaultService = await defaultService.save();
+      if (savedDefaultService._id) {
+        serviceIds.push(savedDefaultService._id.toString());
+      }
     }
 
     // Create new handyman private data with default values for optional fields
@@ -133,23 +139,23 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       nic,
       contactNumber,
       emailAddress,
-      personalPhoto,
+      personalPhoto: personalPhoto || '',
       skills,
       experience,
       certifications: certifications || [],
       services: serviceIds,
       address: {
-        street: address.street,
+        street: address.street || '',
         city: address.city,
         state: address.state,
-        zipCode: address.zipCode,
+        zipCode: address.zipCode || '',
         coordinates: address.coordinates || undefined, // Make coordinates optional
       },
       availability: {
         workingDays: availability.workingDays,
         workingHours: availability.workingHours,
       },
-      paymentMethod,
+      paymentMethod: paymentMethod || 'Cash',
       totalEarnings: 0,
       upcomingBookings: [],
       schedule: {},
