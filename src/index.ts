@@ -5,6 +5,7 @@ import { config } from './config/env';
 import serviceRoutes from './routes/services.routes';
 import bookingRoutes from './routes/bookings.routes';
 import handymanRoutes from './routes/handyman.routes';
+import authRoutes from './routes/auth.routes';
 
 const app: Express = express();
 
@@ -16,6 +17,28 @@ app.use(cors({
   origin: config.CORS_ORIGIN ? [config.CORS_ORIGIN] : false,
   credentials: true,
 }));
+
+// Content Security Policy middleware
+// app.use((req, res, next) => {
+//   res.setHeader(
+//     'Content-Security-Policy',
+//     [
+//       "default-src 'self'",
+//       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
+//       "style-src 'self' 'unsafe-inline' https:",
+//       "font-src 'self' https: data:",
+//       "img-src 'self' data: https: blob:",
+//       "connect-src 'self' https: wss:",
+//       "frame-src 'self' https:",
+//       "object-src 'none'",
+//       "base-uri 'self'",
+//       "form-action 'self'",
+//       "upgrade-insecure-requests"
+//     ].join('; ')
+//   );
+//   next();
+// });
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -23,6 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/handyman', handymanRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
