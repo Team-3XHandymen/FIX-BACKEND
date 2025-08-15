@@ -38,3 +38,12 @@ User Navigates to Dashboard (ClientDashboard.tsx)
 ├── Displays clean, professional interface
 └── No debug information cluttering the UI
 Notes:getting errors for inline codes.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 15/8/25
+Commit msg: "Complete Your Profile setup"
+Changes made: 
+    *Added a complete your profile segment
+    *Added logic to show the profile completion progress
+    *Profile page was modified to show available info and enabled editing customer data.
+Notes: Need to integrate google maps to add the address precisely.
