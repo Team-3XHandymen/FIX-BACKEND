@@ -46,7 +46,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/handyman', handymanRoutes);
+
 app.use('/api/auth', authRoutes);
+
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
