@@ -10,209 +10,213 @@ interface ClerkWebhookPayload {
       email_address: string;
       id: string;
     }>;
-    username?: string;
     first_name?: string;
     last_name?: string;
-    public_metadata?: any;
-    unsafe_metadata?: any;
+    username?: string;
+    phone_numbers?: Array<{
+      phone_number: string;
+      id: string;
+    }>;
+    created_at: number;
+    updated_at: number;
   };
+  object: string;
 }
 
 export class WebhookController {
   /**
-   * Handle Clerk webhooks for user events
+   * Handle Clerk webhook events
    */
   static async handleClerkWebhook(req: Request, res: Response) {
     try {
-      const { type, data } = req.body as ClerkWebhookPayload;
+      const { type, data, object } = req.body as ClerkWebhookPayload;
 
-      // Handle user creation
-      if (type === 'user.created') {
-        await WebhookController.handleUserCreated(data);
-      }
-      // Handle user updates
-      else if (type === 'user.updated') {
-        await WebhookController.handleUserUpdated(data);
-      }
-      // Handle user deletion
-      else if (type === 'user.deleted') {
-        await WebhookController.handleUserDeleted(data.id);
+      console.log('📨 Received Clerk webhook:', { type, object, userId: data?.id });
+
+      // Verify this is a user event
+      if (object !== 'user') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid webhook object type'
+        });
       }
 
-      res.status(200).json({ success: true, message: 'Webhook processed successfully' });
+      switch (type) {
+        case 'user.created':
+          await this.handleUserCreated(data);
+          break;
+        
+        case 'user.updated':
+          await this.handleUserUpdated(data);
+          break;
+        
+        case 'user.deleted':
+          await this.handleUserDeleted(data);
+          break;
+        
+        default:
+          console.log(`⚠️ Unhandled webhook type: ${type}`);
+      }
 
-    } catch (error: any) {
-      console.error('Webhook processing error:', error);
+      res.status(200).json({
+        success: true,
+        message: 'Webhook processed successfully'
+      });
+
+    } catch (error) {
+      console.error('❌ Webhook processing error:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to process webhook',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : 'Internal server error'
       });
     }
   }
 
   /**
-   * Handle new user creation from Clerk
+   * Handle user creation webhook
    */
   private static async handleUserCreated(userData: ClerkWebhookPayload['data']) {
     try {
-      const { id: clerkUserId, email_addresses, username, first_name, last_name, unsafe_metadata } = userData;
+      console.log('👤 Processing user.created webhook for:', userData.id);
 
-      // Check if user already exists
-      const existingClient = await Client.findOne({ userId: clerkUserId });
-      const existingHandyman = await ServiceProvider.findOne({ userId: clerkUserId });
+      // Extract user information
+      const email = userData.email_addresses?.[0]?.email_address;
+      const firstName = userData.first_name || '';
+      const lastName = userData.last_name || '';
+      const username = userData.username || '';
+      const phoneNumber = userData.phone_numbers?.[0]?.phone_number || '';
 
-      if (existingClient || existingHandyman) {
-        console.log(`User ${clerkUserId} already exists in database`);
+      if (!email) {
+        console.warn('⚠️ User created without email:', userData.id);
         return;
       }
 
-      // Extract user information
-      const email = email_addresses?.[0]?.email_address || '';
-      const fullName = [first_name, last_name].filter(Boolean).join(' ') || '';
-      const mobileNumber = unsafe_metadata?.mobileNumber || '';
-      const acceptMarketing = unsafe_metadata?.acceptMarketing || false;
+      // Check if user already exists in our database
+      const existingClient = await Client.findOne({ userId: userData.id });
+      const existingProvider = await ServiceProvider.findOne({ userId: userData.id });
 
-      // Determine user type based on metadata or default to client
-      const userType = unsafe_metadata?.userType || 'client';
-
-      if (userType === 'client') {
-        // Create new client
-        const newClient = new Client({
-          userId: clerkUserId,
-          name: fullName || username || 'New User',
-          mobileNumber: mobileNumber || '',
-          address: {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: ''
-          },
-          location: '',
-          preferences: {
-            marketingConsent: acceptMarketing
-          }
-        });
-
-        await newClient.save();
-        console.log(`Client created for Clerk user: ${clerkUserId}`);
-
-      } else if (userType === 'handyman') {
-        // Create new handyman
-        const newHandyman = new ServiceProvider({
-          userId: clerkUserId,
-          name: fullName || username || 'New Handyman',
-          mobileNumber: mobileNumber || '',
-          email: email,
-          address: {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: ''
-          },
-          location: '',
-          services: [],
-          rating: 0,
-          isVerified: false,
-          isActive: true
-        });
-
-        await newHandyman.save();
-        console.log(`Handyman created for Clerk user: ${clerkUserId}`);
+      if (existingClient || existingProvider) {
+        console.log('ℹ️ User already exists in database:', userData.id);
+        return;
       }
 
-    } catch (error: any) {
-      console.error('Error creating user from webhook:', error);
-      throw error;
+      // For now, we'll create a basic client profile
+      // In a real app, you might want to wait for the user to complete their profile
+      const newClient = new Client({
+        userId: userData.id,
+        name: `${firstName} ${lastName}`.trim() || username || 'New User',
+        mobileNumber: phoneNumber,
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: ''
+        },
+        location: '',
+        preferences: {
+          marketingConsent: false
+        }
+      });
+
+      await newClient.save();
+      console.log('✅ Created new client profile for:', userData.id);
+
+    } catch (error) {
+      console.error('❌ Error handling user.created webhook:', error);
     }
   }
 
   /**
-   * Handle user updates from Clerk
+   * Handle user update webhook
    */
   private static async handleUserUpdated(userData: ClerkWebhookPayload['data']) {
     try {
-      const { id: clerkUserId, email_addresses, username, first_name, last_name, unsafe_metadata } = userData;
+      console.log('🔄 Processing user.updated webhook for:', userData.id);
 
-      // Update client if exists
-      const client = await Client.findOne({ userId: clerkUserId });
+      // Extract updated user information
+      const email = userData.email_addresses?.[0]?.email_address;
+      const firstName = userData.first_name || '';
+      const lastName = userData.last_name || '';
+      const username = userData.username || '';
+      const phoneNumber = userData.phone_numbers?.[0]?.phone_number || '';
+
+      // Update client profile if it exists
+      const client = await Client.findOne({ userId: userData.id });
       if (client) {
         const updates: any = {};
         
-        if (first_name || last_name) {
-          updates.name = [first_name, last_name].filter(Boolean).join(' ') || client.name;
+        if (firstName || lastName) {
+          updates.name = `${firstName} ${lastName}`.trim();
         }
         
-        if (unsafe_metadata?.mobileNumber) {
-          updates.mobileNumber = unsafe_metadata.mobileNumber;
-        }
-        
-        if (unsafe_metadata?.acceptMarketing !== undefined) {
-          updates.preferences = {
-            ...client.preferences,
-            marketingConsent: unsafe_metadata.acceptMarketing
-          };
+        if (phoneNumber) {
+          updates.mobileNumber = phoneNumber;
         }
 
         if (Object.keys(updates).length > 0) {
           await Client.findOneAndUpdate(
-            { userId: clerkUserId },
+            { userId: userData.id },
             { $set: updates },
             { new: true }
           );
-          console.log(`Client updated for Clerk user: ${clerkUserId}`);
+          console.log('✅ Updated client profile for:', userData.id);
         }
       }
 
-      // Update handyman if exists
-      const handyman = await ServiceProvider.findOne({ userId: clerkUserId });
-      if (handyman) {
+      // Update provider profile if it exists
+      const provider = await ServiceProvider.findOne({ userId: userData.id });
+      if (provider) {
         const updates: any = {};
         
-        if (first_name || last_name) {
-          updates.name = [first_name, last_name].filter(Boolean).join(' ') || handyman.name;
+        if (firstName || lastName) {
+          updates.name = `${firstName} ${lastName}`.trim();
         }
         
-        if (unsafe_metadata?.mobileNumber) {
-          updates.mobileNumber = unsafe_metadata.mobileNumber;
+        if (phoneNumber) {
+          updates.mobileNumber = phoneNumber;
         }
 
         if (Object.keys(updates).length > 0) {
           await ServiceProvider.findOneAndUpdate(
-            { userId: clerkUserId },
+            { userId: userData.id },
             { $set: updates },
             { new: true }
           );
-          console.log(`Handyman updated for Clerk user: ${clerkUserId}`);
+          console.log('✅ Updated provider profile for:', userData.id);
         }
       }
 
-    } catch (error: any) {
-      console.error('Error updating user from webhook:', error);
-      throw error;
+    } catch (error) {
+      console.error('❌ Error handling user.updated webhook:', error);
     }
   }
 
   /**
-   * Handle user deletion from Clerk
+   * Handle user deletion webhook
    */
-  private static async handleUserDeleted(clerkUserId: string) {
+  private static async handleUserDeleted(userData: ClerkWebhookPayload['data']) {
     try {
-      // Delete client if exists
-      const deletedClient = await Client.findOneAndDelete({ userId: clerkUserId });
+      console.log('🗑️ Processing user.deleted webhook for:', userData.id);
+
+      // Remove user from our database
+      const deletedClient = await Client.findOneAndDelete({ userId: userData.id });
+      const deletedProvider = await ServiceProvider.findOneAndDelete({ userId: userData.id });
+
       if (deletedClient) {
-        console.log(`Client deleted for Clerk user: ${clerkUserId}`);
+        console.log('✅ Deleted client profile for:', userData.id);
       }
 
-      // Delete handyman if exists
-      const deletedHandyman = await ServiceProvider.findOneAndDelete({ userId: clerkUserId });
-      if (deletedHandyman) {
-        console.log(`Handyman deleted for Clerk user: ${clerkUserId}`);
+      if (deletedProvider) {
+        console.log('✅ Deleted provider profile for:', userData.id);
       }
 
-    } catch (error: any) {
-      console.error('Error deleting user from webhook:', error);
-      throw error;
+      if (!deletedClient && !deletedProvider) {
+        console.log('ℹ️ No profile found to delete for:', userData.id);
+      }
+
+    } catch (error) {
+      console.error('❌ Error handling user.deleted webhook:', error);
     }
   }
 }
