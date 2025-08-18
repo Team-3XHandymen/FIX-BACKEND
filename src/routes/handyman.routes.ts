@@ -10,8 +10,10 @@ import { auth, requireProvider } from '../middleware/auth';
 
 const router = express.Router();
 
+// Public routes (no authentication required)
+router.post('/register', registerHandyman);
+
 // Protected routes (require authentication)
-router.post('/register', auth, registerHandyman);
 router.get('/profile', auth, getHandymanProfile);
 router.put('/profile', auth, updateHandymanProfile);
 

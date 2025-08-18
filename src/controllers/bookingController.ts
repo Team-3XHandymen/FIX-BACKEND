@@ -10,7 +10,7 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
     const { description, location, providerId, serviceId, scheduledTime }: CreateBookingRequest = req.body;
     const clientId = req.user!.id; // From auth middleware
     
-    // Validate that the provider exists
+    // Validate that the provider exists and get their name
     const provider = await ServiceProvider.findOne({ userId: providerId });
     if (!provider) {
       res.status(404).json({
@@ -28,6 +28,17 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
       } as ApiResponse);
       return;
     }
+
+    // Get the service name
+    const { Service } = await import('../models/Service');
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      res.status(404).json({
+        success: false,
+        message: 'Service not found.',
+      } as ApiResponse);
+      return;
+    }
     
     const booking = new Booking({
       description,
@@ -35,6 +46,8 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
       clientId,
       providerId,
       serviceId,
+      providerName: provider.name, // Store provider name directly
+      serviceName: service.name,   // Store service name directly
       scheduledTime: new Date(scheduledTime),
       status: 'pending',
       fee: null, // Will be set by provider when accepting
@@ -62,6 +75,8 @@ export const getMyBookings = async (req: Request, res: Response): Promise<void> 
     const userId = req.user!.id;
     const userType = req.user!.type!;
     
+    console.log('Getting bookings for user:', { userId, userType });
+    
     let query: any = {};
     
     if (userType === 'client') {
@@ -71,13 +86,34 @@ export const getMyBookings = async (req: Request, res: Response): Promise<void> 
     }
     
     const bookings = await Booking.find(query)
-      .sort({ scheduledTime: -1 })
-      .populate('serviceId', 'name baseFee');
+      .sort({ scheduledTime: -1 });
+    
+    console.log(`Found ${bookings.length} bookings`);
+    
+    // No need to enrich data anymore since it's stored directly
+    // Just map the data to include the names for frontend compatibility
+    const enrichedBookings = bookings.map(booking => {
+      console.log('Raw booking fields:', Object.keys(booking.toObject()));
+      console.log('Booking serviceName:', booking.serviceName);
+      console.log('Booking providerName:', booking.providerName);
+      
+      return {
+        ...booking.toObject(),
+        providerName: booking.providerName,
+        serviceCategory: booking.serviceName
+      };
+    });
+    
+    console.log('Bookings with names:', enrichedBookings.map(b => ({ 
+      id: b._id, 
+      providerName: b.providerName, 
+      serviceCategory: b.serviceCategory 
+    })));
     
     res.json({
       success: true,
       message: 'Bookings retrieved successfully.',
-      data: bookings,
+      data: enrichedBookings,
     } as ApiResponse);
   } catch (error) {
     console.error('Get bookings error:', error);
@@ -94,8 +130,7 @@ export const getBookingById = async (req: Request, res: Response): Promise<void>
     const { id } = req.params;
     const userId = req.user!.id;
     
-    const booking = await Booking.findById(id)
-      .populate('serviceId', 'name baseFee');
+    const booking = await Booking.findById(id);
     
     if (!booking) {
       res.status(404).json({

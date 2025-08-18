@@ -5,6 +5,8 @@ import { config } from './config/env';
 import serviceRoutes from './routes/services.routes';
 import bookingRoutes from './routes/bookings.routes';
 import handymanRoutes from './routes/handyman.routes';
+import authRoutes from './routes/auth.routes';
+import clientRoutes from './routes/clients.routes';
 
 const app: Express = express();
 
@@ -13,7 +15,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001', config.CORS_ORIGIN],
+  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -23,6 +25,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/handyman', handymanRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/clients', clientRoutes);
+
+// Debug: Log all registered routes
+console.log('🔗 Registered API routes:');
+console.log('  - /api/services');
+console.log('  - /api/bookings');
+console.log('  - /api/handyman');
+console.log('  - /api/auth');
+console.log('  - /api/clients');
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -60,7 +72,7 @@ app.use('*', (req: Request, res: Response) => {
 });
 
 app.listen(config.PORT, () => {
-  console.log(`🚀 Server is running at http://localhost:${config.PORT}`);
+  console.log(`🚀 Server is running on port ${config.PORT}`);
   console.log(`📊 Environment: ${config.NODE_ENV}`);
-  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN}`);
+  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN || 'Not configured'}`);
 }); 
