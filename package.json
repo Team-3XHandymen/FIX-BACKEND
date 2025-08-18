@@ -7,7 +7,8 @@
     "dev": "ts-node src/index.ts",
     "seed:all": "ts-node src/scripts/seedAllData.ts",
     "seed:providers": "ts-node src/scripts/addMoreServiceProviders.ts",
-    "clear:collections": "ts-node src/scripts/clearCollections.ts"
+    "clear:collections": "ts-node src/scripts/clearCollections.ts",
+    "migrate:bookings": "ts-node src/scripts/migrateBookings.ts"
   },
   "keywords": [],
   "author": "",

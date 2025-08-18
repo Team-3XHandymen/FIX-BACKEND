@@ -47,3 +47,21 @@ Changes made:
     *Added logic to show the profile completion progress
     *Profile page was modified to show available info and enabled editing customer data.
 Notes: Need to integrate google maps to add the address precisely.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 17/8/25
+Commit msg: "Booking placement integrated for clients"
+Changes made: 
+    *Added Hire now buttons to service provider cards
+    *Created an advanced form to place bookings and integrated the database to save the booking with providerID, clientID, and other filled information with status set as pending
+    *Generating a booking ID at the end of every booking placement
+Notes: Inline code errors.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 18/8/25
+Commit msg: "Upcoming bookings integrated with the db:clients"
+Changes made: 
+    *Integrated Your bookings component with the database collection bookings.(Shows all bookings under clientid except for completed ones)
+    *Instead of using two booking ids , removed the auto generating bookingid and kept only the database bookingid
+    *Changed the collection bookings to save the serviceprovider's name and service category name too to render details easier.
+Notes: 
