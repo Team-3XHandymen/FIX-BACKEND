@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBookingDocument extends Document {
-  bookingId?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'done';
   description: string;
   fee: number | null;
@@ -15,14 +14,14 @@ export interface IBookingDocument extends Document {
   clientId: string; // Clerk User ID
   providerId: string; // Clerk User ID
   serviceId: string;
+  // Store names directly for easy access
+  providerName: string;
+  serviceName: string;
   scheduledTime: Date;
   createdAt: Date;
 }
 
 const bookingSchema = new Schema<IBookingDocument>({
-  bookingId: {
-    type: String,
-  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'cancelled', 'done'],
@@ -61,6 +60,14 @@ const bookingSchema = new Schema<IBookingDocument>({
     type: String,
     required: true,
   },
+  providerName: {
+    type: String,
+    required: true,
+  },
+  serviceName: {
+    type: String,
+    required: true,
+  },
   scheduledTime: {
     type: Date,
     required: true,
@@ -73,16 +80,7 @@ const bookingSchema = new Schema<IBookingDocument>({
   timestamps: true,
 });
 
-// Auto-generate bookingId if not provided
-bookingSchema.pre('save', function(next) {
-  if (!this.bookingId && this._id) {
-    this.bookingId = this._id.toString();
-  }
-  next();
-});
-
 // 🔽 Indexes (clean, non-duplicated)
-bookingSchema.index({ bookingId: 1 }, { unique: true, sparse: true }); // Optional unique booking ID
 bookingSchema.index({ clientId: 1, status: 1 });                       // For client-based booking queries
 bookingSchema.index({ providerId: 1, status: 1 });                     // For provider-based booking queries
 bookingSchema.index({ serviceId: 1 });                                 // For filtering by service

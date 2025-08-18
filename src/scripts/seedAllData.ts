@@ -149,6 +149,7 @@ const sampleClients = [
 const sampleProviders = [
   {
     userId: "provider_001",
+    name: "Sapumal Chandrasiri",
     serviceIds: [], // Will be populated with service IDs
     experience: "5+ years",
     rating: 4.8,
@@ -169,6 +170,7 @@ const sampleProviders = [
   },
   {
     userId: "provider_002",
+    name: "Udayanga Perera",
     serviceIds: [],
     experience: "3+ years",
     rating: 4.6,
@@ -189,6 +191,7 @@ const sampleProviders = [
   },
   {
     userId: "provider_003",
+    name: "Nimal Basnayake",
     serviceIds: [],
     experience: "7+ years",
     rating: 4.9,
@@ -209,6 +212,7 @@ const sampleProviders = [
   },
   {
     userId: "provider_004",
+    name: "Piyal Alahakon",
     serviceIds: [],
     experience: "4+ years",
     rating: 4.5,
@@ -230,6 +234,7 @@ const sampleProviders = [
   },
   {
     userId: "provider_005",
+    name: "Kamal Silva",
     serviceIds: [],
     experience: "6+ years",
     rating: 4.7,

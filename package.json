@@ -5,10 +5,10 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "ts-node src/index.ts",
-    "seed": "ts-node src/scripts/seedServices.ts",
     "seed:all": "ts-node src/scripts/seedAllData.ts",
-    "test": "ts-node src/scripts/testAPI.ts",
-    "test:api": "ts-node src/scripts/testAPI.ts"
+    "seed:providers": "ts-node src/scripts/addMoreServiceProviders.ts",
+    "clear:collections": "ts-node src/scripts/clearCollections.ts",
+    "migrate:bookings": "ts-node src/scripts/migrateBookings.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,11 +16,13 @@
   "description": "",
   "dependencies": {
     "@types/mongoose": "^5.11.96",
+    "@types/uuid": "^10.0.0",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "mongoose": "^8.17.0"
+    "mongoose": "^8.17.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
