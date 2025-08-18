@@ -6,7 +6,7 @@ import serviceRoutes from './routes/services.routes';
 import bookingRoutes from './routes/bookings.routes';
 import handymanRoutes from './routes/handyman.routes';
 import authRoutes from './routes/auth.routes';
-import clientRoutes from './routes/clients.routes';
+
 
 const app: Express = express();
 
@@ -26,7 +26,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/handyman', handymanRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/clients', clientRoutes);
+
 
 // Debug: Log all registered routes
 console.log('🔗 Registered API routes:');
@@ -34,7 +34,7 @@ console.log('  - /api/services');
 console.log('  - /api/bookings');
 console.log('  - /api/handyman');
 console.log('  - /api/auth');
-console.log('  - /api/clients');
+
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
