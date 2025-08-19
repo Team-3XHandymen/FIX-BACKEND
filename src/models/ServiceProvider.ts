@@ -6,15 +6,7 @@ export interface IServiceProviderDocument extends Document {
   serviceIds: string[];
   experience: string;
   rating: number;
-  location: {
-    city: string;
-    area: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
-  skills?: string[];
+  location: string; // Simple location string
   bio: string;
   doneJobsCount: number;
   availability: {
@@ -48,25 +40,10 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
     max: 5,
   },
   location: {
-    city: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    area: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    coordinates: {
-      lat: Number,
-      lng: Number,
-    },
-  },
-  skills: [{
     type: String,
+    required: true,
     trim: true,
-  }],
+  },
   bio: {
     type: String,
     required: true,
@@ -90,6 +67,6 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
 serviceProviderSchema.index({ userId: 1 },{ unique: true});
 serviceProviderSchema.index({ serviceIds: 1 });
 serviceProviderSchema.index({ rating: -1 });
-serviceProviderSchema.index({ 'location.city': 1, 'location.area': 1 });
+serviceProviderSchema.index({ location: 1 });
 
 export const ServiceProvider = mongoose.model<IServiceProviderDocument>('ServiceProvider', serviceProviderSchema);
