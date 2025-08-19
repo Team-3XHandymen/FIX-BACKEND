@@ -65,3 +65,13 @@ Changes made:
     *Instead of using two booking ids , removed the auto generating bookingid and kept only the database bookingid
     *Changed the collection bookings to save the serviceprovider's name and service category name too to render details easier.
 Notes: 
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 19/8/25
+Commit msg: "Handyman registration integration with the database"
+Changes made: 
+    *Modified the handyman registration form for user convinience
+    *Integrated the database to store the registration details and create a serviceprovider array.
+    *Added the service dashboard button to the homepage for easy access, it checks the clerk unsafemetadata to identify the user as a handyman and make this button visible only to the serviceproviders.
+    *Deleted few service arrays that didnt make sense.
+Notes: Can start with handyman part of booking process.
