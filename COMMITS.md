@@ -75,3 +75,12 @@ Changes made:
     *Added the service dashboard button to the homepage for easy access, it checks the clerk unsafemetadata to identify the user as a handyman and make this button visible only to the serviceproviders.
     *Deleted few service arrays that didnt make sense.
 Notes: Can start with handyman part of booking process.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 20/8/25
+Commit msg: "Loading bookings in the service dashboard"
+Changes made: 
+    *Added personalized welcome message to the service dashboard
+    *Added Logics to grab the serviceprovider userid and filter the bookings under that id to be visible on the service dashboard under client requests. 
+    *Shows the service category, client name, description , date time scheduled and requested, and location
+Notes: Adding the logic to change the booking status on serviceprovider's decision to accept or reject.

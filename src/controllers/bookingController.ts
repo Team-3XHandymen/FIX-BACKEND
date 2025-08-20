@@ -277,4 +277,131 @@ export const getPendingBookings = async (req: Request, res: Response): Promise<v
       message: 'Internal server error.',
     } as ApiResponse);
   }
+};
+
+// Get all bookings for a specific provider (for handyman dashboard)
+export const getBookingsByProviderId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { providerId } = req.params;
+    
+    // Validate that the provider exists
+    const provider = await ServiceProvider.findOne({ userId: providerId });
+    if (!provider) {
+      res.status(404).json({
+        success: false,
+        message: 'Service provider not found.',
+      } as ApiResponse);
+      return;
+    }
+    
+    const { Client } = await import('../models/Client');
+    
+    const bookings = await Booking.find({ providerId })
+      .sort({ createdAt: -1 });
+    
+    // Enrich bookings with client names
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const client = await Client.findOne({ userId: booking.clientId });
+        return {
+          ...booking.toObject(),
+          clientName: client?.name || client?.username || 'Unknown Client'
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      message: 'Provider bookings retrieved successfully.',
+      data: enrichedBookings,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Get bookings by provider ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
+};
+
+// Get bookings for a service provider using their Clerk userId
+export const getBookingsByClerkUserId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { clerkUserId } = req.params;
+    
+    // First find the service provider record for this Clerk userId
+    const provider = await ServiceProvider.findOne({ userId: clerkUserId });
+    if (!provider) {
+      res.status(404).json({
+        success: false,
+        message: 'Service provider not found for this user.',
+      } as ApiResponse);
+      return;
+    }
+    
+    // Now find all bookings where the providerId matches the service provider's database _id
+    const { Client } = await import('../models/Client');
+    
+    const bookings = await Booking.find({ providerId: provider._id })
+      .sort({ createdAt: -1 });
+    
+    // Enrich bookings with client names
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const client = await Client.findOne({ userId: booking.clientId });
+        return {
+          ...booking.toObject(),
+          clientName: client?.name || client?.username || 'Unknown Client'
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      message: 'Provider bookings retrieved successfully.',
+      data: enrichedBookings,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Get bookings by Clerk user ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
+};
+
+// Get bookings for a service provider using their database ID directly
+export const getBookingsByProviderDatabaseId = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { providerDatabaseId } = req.params;
+    
+    // Find all bookings where the providerId matches the service provider's database _id
+    const { Client } = await import('../models/Client');
+    
+    const bookings = await Booking.find({ providerId: providerDatabaseId })
+      .sort({ createdAt: -1 });
+    
+    // Enrich bookings with client names
+    const enrichedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        const client = await Client.findOne({ userId: booking.clientId });
+        return {
+          ...booking.toObject(),
+          clientName: client?.name || client?.username || 'Unknown Client'
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      message: 'Provider bookings retrieved successfully.',
+      data: enrichedBookings,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Get bookings by provider database ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
 }; 
