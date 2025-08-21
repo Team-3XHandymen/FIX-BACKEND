@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const registerHandyman = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
+      clerkUserId, // Add Clerk user ID from request body
       name,
       nic,
       contactNumber,
@@ -23,11 +24,12 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
     } = req.body;
 
     // Validate required fields
-    if (!name || !nic || !contactNumber || !emailAddress || !experience || !location) {
+    if (!clerkUserId || !name || !nic || !contactNumber || !emailAddress || !experience || !location) {
       res.status(400).json({
         success: false,
-        message: 'Missing required fields. Please provide all required information.',
+        message: 'Missing required fields. Please provide all required information including Clerk user ID.',
         missingFields: {
+          clerkUserId: !clerkUserId,
           name: !name,
           nic: !nic,
           contactNumber: !contactNumber,
@@ -64,8 +66,18 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       if (!availability.workingHours) availability.workingHours = ['9:00 AM - 5:00 PM'];
     }
 
-    // For registration, generate a new userId since user is not authenticated yet
-    const userId = req.user?.id || uuidv4();
+    // Use the Clerk user ID from the request body
+    const userId = clerkUserId;
+
+    // Check if handyman already exists by Clerk user ID
+    const existingHandymanByUserId = await ServiceProvider.findOne({ userId });
+    if (existingHandymanByUserId) {
+      res.status(400).json({
+        success: false,
+        message: 'A handyman with this user ID is already registered.',
+      } as ApiResponse);
+      return;
+    }
 
     // Check if handyman already exists by email or NIC
     const existingHandymanByEmail = await ProviderPrivateData.findOne({ emailAddress });
