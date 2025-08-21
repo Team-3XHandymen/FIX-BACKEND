@@ -329,20 +329,10 @@ export const getBookingsByClerkUserId = async (req: Request, res: Response): Pro
   try {
     const { clerkUserId } = req.params;
     
-    // First find the service provider record for this Clerk userId
-    const provider = await ServiceProvider.findOne({ userId: clerkUserId });
-    if (!provider) {
-      res.status(404).json({
-        success: false,
-        message: 'Service provider not found for this user.',
-      } as ApiResponse);
-      return;
-    }
-    
-    // Now find all bookings where the providerId matches the service provider's database _id
+    // Find all bookings where the providerId matches the Clerk user ID
     const { Client } = await import('../models/Client');
     
-    const bookings = await Booking.find({ providerId: provider._id })
+    const bookings = await Booking.find({ providerId: clerkUserId })
       .sort({ createdAt: -1 });
     
     // Enrich bookings with client names
@@ -399,6 +389,89 @@ export const getBookingsByProviderDatabaseId = async (req: Request, res: Respons
     } as ApiResponse);
   } catch (error) {
     console.error('Get bookings by provider database ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
+}; 
+
+// Public endpoint to update booking status (for handyman dashboard)
+export const updateBookingStatusPublic = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status, fee, clerkUserId }: { status: 'confirmed' | 'cancelled'; fee?: number; clerkUserId: string } = req.body;
+    
+    if (!status || !['confirmed', 'cancelled'].includes(status)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be either "confirmed" or "cancelled".',
+      } as ApiResponse);
+      return;
+    }
+
+    if (!clerkUserId) {
+      res.status(400).json({
+        success: false,
+        message: 'Clerk user ID is required to verify ownership.',
+      } as ApiResponse);
+      return;
+    }
+
+    // For confirmed status, fee is required
+    if (status === 'confirmed' && (!fee || fee <= 0)) {
+      res.status(400).json({
+        success: false,
+        message: 'Fee is required and must be greater than 0 when confirming a booking.',
+      } as ApiResponse);
+      return;
+    }
+
+    const booking = await Booking.findById(id);
+    
+    if (!booking) {
+      res.status(404).json({
+        success: false,
+        message: 'Booking not found.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Verify that the service provider owns this booking
+    if (booking.providerId !== clerkUserId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only update your own bookings.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Check if booking is still pending
+    if (booking.status !== 'pending') {
+      res.status(400).json({
+        success: false,
+        message: 'Booking status can only be updated when it is pending.',
+      } as ApiResponse);
+      return;
+    }
+    
+    // Update booking
+    const updates: any = { status };
+    if (fee !== undefined) updates.fee = fee;
+    
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      updates,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({
+      success: true,
+      message: `Booking ${status} successfully.`,
+      data: updatedBooking,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Update booking status error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error.',
