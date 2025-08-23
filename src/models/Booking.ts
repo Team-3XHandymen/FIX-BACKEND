@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBookingDocument extends Document {
-  status: 'pending' | 'confirmed' | 'cancelled' | 'done';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid' | 'done' | 'completed';
   description: string;
   fee: number | null;
   location: {
@@ -24,7 +24,7 @@ export interface IBookingDocument extends Document {
 const bookingSchema = new Schema<IBookingDocument>({
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'done'],
+    enum: ['pending', 'accepted', 'rejected', 'paid', 'done', 'completed'],
     default: 'pending',
   },
   description: {

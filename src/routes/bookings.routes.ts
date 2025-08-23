@@ -8,7 +8,8 @@ import {
   getBookingsByProviderId,
   getBookingsByClerkUserId,
   getBookingsByProviderDatabaseId,
-  updateBookingStatusPublic
+  updateBookingStatusPublic,
+  updateBookingStatusClient
 } from '../controllers/bookingController';
 import { auth, requireClient, requireProvider } from '../middleware/auth';
 
@@ -29,6 +30,10 @@ router.get('/provider-db/:providerDatabaseId', getBookingsByProviderDatabaseId);
 // Public route to update booking status (for handyman dashboard)
 // This route is public and doesn't require authentication
 router.patch('/:id/status-public', updateBookingStatusPublic);
+
+// Public route to update booking status (for client dashboard)
+// This route is public and doesn't require authentication
+router.patch('/:id/status-client', updateBookingStatusClient);
 
 // All other booking routes require authentication
 router.use(auth);

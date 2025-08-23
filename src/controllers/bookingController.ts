@@ -400,12 +400,12 @@ export const getBookingsByProviderDatabaseId = async (req: Request, res: Respons
 export const updateBookingStatusPublic = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { status, fee, clerkUserId }: { status: 'confirmed' | 'cancelled'; fee?: number; clerkUserId: string } = req.body;
+    const { status, fee, clerkUserId }: { status: 'accepted' | 'rejected' | 'paid' | 'done' | 'completed'; fee?: number; clerkUserId: string } = req.body;
     
-    if (!status || !['confirmed', 'cancelled'].includes(status)) {
+    if (!status || !['accepted', 'rejected', 'paid', 'done', 'completed'].includes(status)) {
       res.status(400).json({
         success: false,
-        message: 'Invalid status. Must be either "confirmed" or "cancelled".',
+        message: 'Invalid status. Must be one of: "accepted", "rejected", "paid", "done", "completed".',
       } as ApiResponse);
       return;
     }
@@ -414,15 +414,6 @@ export const updateBookingStatusPublic = async (req: Request, res: Response): Pr
       res.status(400).json({
         success: false,
         message: 'Clerk user ID is required to verify ownership.',
-      } as ApiResponse);
-      return;
-    }
-
-    // For confirmed status, fee is required
-    if (status === 'confirmed' && (!fee || fee <= 0)) {
-      res.status(400).json({
-        success: false,
-        message: 'Fee is required and must be greater than 0 when confirming a booking.',
       } as ApiResponse);
       return;
     }
@@ -446,11 +437,66 @@ export const updateBookingStatusPublic = async (req: Request, res: Response): Pr
       return;
     }
 
-    // Check if booking is still pending
-    if (booking.status !== 'pending') {
+    // Validate status transitions based on current status
+    let isValidTransition = false;
+    let requiredFee = false;
+
+    switch (booking.status) {
+      case 'pending':
+        // From pending, can only go to accepted or rejected
+        if (['accepted', 'rejected'].includes(status)) {
+          isValidTransition = true;
+          if (status === 'accepted') {
+            requiredFee = true;
+          }
+        }
+        break;
+      
+      case 'accepted':
+        // From accepted, can only go to paid (when client pays)
+        if (status === 'paid') {
+          isValidTransition = true;
+        }
+        break;
+      
+      case 'paid':
+        // From paid, can only go to done (when provider completes work)
+        if (status === 'done') {
+          isValidTransition = true;
+        }
+        break;
+      
+      case 'done':
+        // From done, can only go to completed (when client confirms)
+        if (status === 'completed') {
+          isValidTransition = true;
+        }
+        break;
+      
+      case 'rejected':
+        // Rejected is a terminal state
+        isValidTransition = false;
+        break;
+      
+      case 'completed':
+        // Completed is a terminal state
+        isValidTransition = false;
+        break;
+    }
+
+    if (!isValidTransition) {
       res.status(400).json({
         success: false,
-        message: 'Booking status can only be updated when it is pending.',
+        message: `Invalid status transition from "${booking.status}" to "${status}".`,
+      } as ApiResponse);
+      return;
+    }
+
+    // For accepted status, fee is required
+    if (requiredFee && (!fee || fee <= 0)) {
+      res.status(400).json({
+        success: false,
+        message: 'Fee is required and must be greater than 0 when accepting a booking.',
       } as ApiResponse);
       return;
     }
@@ -462,6 +508,98 @@ export const updateBookingStatusPublic = async (req: Request, res: Response): Pr
     const updatedBooking = await Booking.findByIdAndUpdate(
       id,
       updates,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({
+      success: true,
+      message: `Booking ${status} successfully.`,
+      data: updatedBooking,
+    } as ApiResponse);
+  } catch (error) {
+    console.error('Update booking status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    } as ApiResponse);
+  }
+}; 
+
+// Client endpoint to update booking status (for paid and completed statuses)
+export const updateBookingStatusClient = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status, clerkUserId }: { status: 'paid' | 'completed'; clerkUserId: string } = req.body;
+    
+    if (!status || !['paid', 'completed'].includes(status)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be either "paid" or "completed".',
+      } as ApiResponse);
+      return;
+    }
+
+    if (!clerkUserId) {
+      res.status(400).json({
+        success: false,
+        message: 'Clerk user ID is required to verify ownership.',
+      } as ApiResponse);
+      return;
+    }
+
+    const booking = await Booking.findById(id);
+    
+    if (!booking) {
+      res.status(404).json({
+        success: false,
+        message: 'Booking not found.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Verify that the client owns this booking
+    if (booking.clientId !== clerkUserId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only update your own bookings.',
+      } as ApiResponse);
+      return;
+    }
+
+    // Validate status transitions based on current status
+    let isValidTransition = false;
+
+    switch (booking.status) {
+      case 'accepted':
+        // From accepted, client can mark as paid
+        if (status === 'paid') {
+          isValidTransition = true;
+        }
+        break;
+      
+      case 'done':
+        // From done, client can mark as completed
+        if (status === 'completed') {
+          isValidTransition = true;
+        }
+        break;
+      
+      default:
+        isValidTransition = false;
+    }
+
+    if (!isValidTransition) {
+      res.status(400).json({
+        success: false,
+        message: `Invalid status transition from "${booking.status}" to "${status}".`,
+      } as ApiResponse);
+      return;
+    }
+    
+    // Update booking
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      id,
+      { status },
       { new: true, runValidators: true }
     );
     

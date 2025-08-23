@@ -78,7 +78,7 @@ export interface IClient {
 export interface IBooking {
   _id?: string;
   bookingId?: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'done';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid' | 'done' | 'completed';
   description: string;
   fee: number | null;
   location: {

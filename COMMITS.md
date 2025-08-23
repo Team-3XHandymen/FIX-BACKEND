@@ -99,3 +99,14 @@ Commit msg: "Added autofil for the registration form"
 Changes made: 
     *Instead of asking the user to provide the same information several times, we now use the existing client information of the same profile when a client registers as a service provider. keeping the access to edit if the client wants to do so.
     *Service provider dashboard now opens in a seperate tab for ease of access and separation of two profiles.
+
+Collaborator name:Sewwandi
+Date: 23/8/25
+Commit msg: "Enhanced booking system with new status flow and API endpoints"
+Changes made: 
+    *Updated booking model to support new status values: pending, accepted, rejected, paid, done, completed
+    *Enhanced booking controller with new status transition validation logic
+    *Added new API endpoint for clients to update booking status (paid, completed)
+    *Updated existing provider status update endpoint to handle new status flow
+    *Added comprehensive status transition validation to prevent invalid state changes
+Notes: New booking system provides better workflow control and user experience
