@@ -99,7 +99,7 @@ Commit msg: "Added autofil for the registration form"
 Changes made: 
     *Instead of asking the user to provide the same information several times, we now use the existing client information of the same profile when a client registers as a service provider. keeping the access to edit if the client wants to do so.
     *Service provider dashboard now opens in a seperate tab for ease of access and separation of two profiles.
-
+________________________________________________________________________________________________
 Collaborator name:Sewwandi
 Date: 23/8/25
 Commit msg: "Enhanced booking system with new status flow and API endpoints"
