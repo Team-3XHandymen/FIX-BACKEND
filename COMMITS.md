@@ -110,3 +110,20 @@ Changes made:
     *Updated existing provider status update endpoint to handle new status flow
     *Added comprehensive status transition validation to prevent invalid state changes
 Notes: New booking system provides better workflow control and user experience
+
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 25/8/25
+Commit msg: "Implemented WebSocket server and chat system backend"
+Changes made: 
+    •	Added Socket.io server integration with Express
+    •	Created Chat model with message schema and indexing
+    •	Implemented chat controller with message persistence
+    •	Added chat routes for API endpoints
+    •	Integrated WebSocket with HTTP server for unified port
+    •	Added real-time booking room management
+    •	Implemented message broadcasting and status update notifications
+    •	Added automatic chat creation for new bookings
+    •	Enhanced server with WebSocket event handling
+    •	Updated CORS configuration for WebSocket connections
+Notes: WebSocket implementation enables real-time communication and reduces server load from polling

@@ -95,8 +95,8 @@ const clientSchema = new Schema<IClientDocument>({
   timestamps: true,
 });
 
-// ✅ Define indexes cleanly here — NO duplicate field-based `index: true`
-clientSchema.index({ userId: 1 }, { unique: true });                           // Unique index for Clerk user ID only
+
+clientSchema.index({ userId: 1 });                           // Unique index for Clerk user ID only
 clientSchema.index({ email: 1 });                                             // Index for email lookups (not unique)
 clientSchema.index({ username: 1 });                                          // Index for username lookups (not unique)
 clientSchema.index({ 'address.city': 1, 'address.state': 1 });                // For filtering by city/state
