@@ -114,7 +114,7 @@ Notes: New booking system provides better workflow control and user experience
 ________________________________________________________________________________________________
 Collaborator name:Sewwandi
 Date: 25/8/25
-Commit msg: "Implemented WebSocket server and chat system backend"
+Commit msg: "Chat integrated"
 Changes made: 
     •	Added Socket.io server integration with Express
     •	Created Chat model with message schema and indexing
