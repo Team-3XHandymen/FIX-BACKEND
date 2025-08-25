@@ -127,3 +127,5 @@ Changes made:
     •	Enhanced server with WebSocket event handling
     •	Updated CORS configuration for WebSocket connections
 Notes: WebSocket implementation enables real-time communication and reduces server load from polling
+
+Co authors
