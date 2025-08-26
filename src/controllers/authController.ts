@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Client } from '../models/Client';
 import { ServiceProvider } from '../models/ServiceProvider';
+import { ProviderPrivateData } from '../models/ProviderPrivateData';
 
 interface CreateUserRequest {
   clerkUserId: string;
@@ -287,4 +288,61 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * Verify user role from database
+   */
+  static async verifyUserRole(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required parameter: userId'
+        });
+      }
+
+      // Check if user exists as a client
+      const client = await Client.findOne({ userId });
+      
+      // Check if user exists as a handyman (in both collections)
+      const serviceProvider = await ServiceProvider.findOne({ userId });
+      const providerPrivateData = await ProviderPrivateData.findOne({ userId });
+
+      // Determine user role
+      let userRole = 'none';
+      let isRegistered = false;
+
+      if (serviceProvider && providerPrivateData) {
+        userRole = 'handyman';
+        isRegistered = true;
+      } else if (client) {
+        userRole = 'client';
+        isRegistered = true;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          userId,
+          userRole,
+          isRegistered,
+          hasClientProfile: !!client,
+          hasHandymanProfile: !!(serviceProvider && providerPrivateData)
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error verifying user role:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to verify user role',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
+  }
 }
+
+// Export the verifyUserRole function for direct use
+export const verifyUserRole = AuthController.verifyUserRole;

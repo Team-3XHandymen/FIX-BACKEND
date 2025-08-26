@@ -127,5 +127,10 @@ Changes made:
     •	Enhanced server with WebSocket event handling
     •	Updated CORS configuration for WebSocket connections
 Notes: WebSocket implementation enables real-time communication and reduces server load from polling
-
-Co authors
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 26/8/25
+Commit msg: "Created protected routes"
+Changes made: 
+    •	Created protected routes for handyman and client.
+    •	Fixed errors on the terminal aboout a duplicate variable declaration
