@@ -114,7 +114,7 @@ Notes: New booking system provides better workflow control and user experience
 ________________________________________________________________________________________________
 Collaborator name:Sewwandi
 Date: 25/8/25
-Commit msg: "Implemented WebSocket server and chat system backend"
+Commit msg: "Chat integrated"
 Changes made: 
     •	Added Socket.io server integration with Express
     •	Created Chat model with message schema and indexing
@@ -127,3 +127,10 @@ Changes made:
     •	Enhanced server with WebSocket event handling
     •	Updated CORS configuration for WebSocket connections
 Notes: WebSocket implementation enables real-time communication and reduces server load from polling
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 26/8/25
+Commit msg: "Created protected routes"
+Changes made: 
+    •	Created protected routes for handyman and client.
+    •	Fixed errors on the terminal aboout a duplicate variable declaration

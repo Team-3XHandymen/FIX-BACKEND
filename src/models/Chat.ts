@@ -50,8 +50,7 @@ const chatSchema = new Schema<IChatDocument>({
   timestamps: true,
 });
 
-// Index for efficient querying
-chatSchema.index({ bookingId: 1 });
+// Index for efficient querying (removed duplicate bookingId index since unique: true already creates it)
 chatSchema.index({ lastMessageAt: -1 });
 
 export const Chat = mongoose.model<IChatDocument>('Chat', chatSchema);
