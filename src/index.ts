@@ -10,6 +10,7 @@ import handymanRoutes from './routes/handyman.routes';
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/clients.routes';
 import chatRoutes from './routes/chat.routes';
+import stripeRoutes from './routes/stripe.routes';
 import { Chat } from './models/Chat';
 
 const app: Express = express();
@@ -41,6 +42,7 @@ app.use('/api/handyman', handymanRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -123,6 +125,7 @@ console.log('  - /api/handyman');
 console.log('  - /api/auth');
 console.log('  - /api/clients');
 console.log('  - /api/chat');
+console.log('  - /api/stripe');
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

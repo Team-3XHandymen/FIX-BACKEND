@@ -134,3 +134,14 @@ Commit msg: "Created protected routes"
 Changes made: 
     •	Created protected routes for handyman and client.
     •	Fixed errors on the terminal aboout a duplicate variable declaration
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 30/9/25
+Commit msg: "Stripe integration foundation"
+Changes made: 
+    •	Created a stripe account with connect access, got the sk and pk
+    •	Installed stripe to the backend.
+    •   Configured Database models, controllers, api routes on the backend.
+    •   Configured payment components, payment pages on the frontend.
+Notes: But since the webhooks need a publicaly accessible URL. terminating the process of payment integration until the deployment. 
+Next step: Deployment of the frontend and backend.
