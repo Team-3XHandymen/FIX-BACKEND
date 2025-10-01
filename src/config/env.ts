@@ -12,8 +12,9 @@ export const config = {
   // Database
   MONGODB_URI: process.env.MONGODB_URI || '',
   
-  // CORS
+  // CORS & Frontend
   CORS_ORIGIN: process.env.CORS_ORIGIN || '',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Authentication (Clerk)
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || '',
