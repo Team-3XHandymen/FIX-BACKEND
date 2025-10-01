@@ -16,10 +16,18 @@ import { Chat } from './models/Chat';
 const app: Express = express();
 const server = createServer(app);
 
+// CORS configuration - allow both local and production URLs
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL || '', // Your deployed frontend URL from environment variables
+].filter(Boolean); // Remove empty strings
+
 // Create Socket.io server
 const io = new SocketIOServer(server, {
   cors: {
-    origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000'],
+    origin: allowedOrigins,
     credentials: true,
   },
 });
@@ -29,7 +37,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:5173', 'http://localhost:3000'],
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

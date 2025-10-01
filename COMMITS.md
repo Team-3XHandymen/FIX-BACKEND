@@ -145,3 +145,15 @@ Changes made:
     •   Configured payment components, payment pages on the frontend.
 Notes: But since the webhooks need a publicaly accessible URL. terminating the process of payment integration until the deployment. 
 Next step: Deployment of the frontend and backend.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 01/10/25
+Commit msg: "Prepared backend for Render deployment"
+Changes made: 
+    •	Updated tsconfig.json with deployment-ready configuration (sourceMap, outDir: ./dist)
+    •	Created globals.d.ts file for Clerk type definitions
+    •   Updated CORS configuration to support both local and production URLs via FRONTEND_URL environment variable
+    •   Added FRONTEND_URL to environment configuration
+    •   Updated .gitignore to exclude dist/ folder and log files
+Notes: Backend is now ready for deployment on Render. Need to set environment variables on Render dashboard.
+Next step: Deploy backend on Render and configure environment variables.
