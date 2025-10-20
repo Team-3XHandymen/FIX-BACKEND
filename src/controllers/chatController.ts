@@ -109,6 +109,8 @@ export const getUserChats = async (req: Request, res: Response) => {
   try {
     const { userId, userType } = req.query;
 
+    console.log('📥 getUserChats called with:', { userId, userType });
+
     if (!userId || !userType) {
       return res.status(400).json({
         success: false,
@@ -116,15 +118,67 @@ export const getUserChats = async (req: Request, res: Response) => {
       });
     }
 
-    // This would need to be implemented based on your booking structure
-    // For now, we'll return an empty array
-    // You can enhance this by joining with bookings to get relevant chats
+    // Import Booking model to join with chats
+    const { Booking } = await import('../models/Booking');
+    
+    // Get all bookings for this user
+    let bookings;
+    if (userType === 'client') {
+      bookings = await Booking.find({ clientId: userId });
+      console.log(`📥 Found ${bookings.length} bookings for client ${userId}`);
+    } else if (userType === 'handyman') {
+      bookings = await Booking.find({ providerId: userId });
+      console.log(`📥 Found ${bookings.length} bookings for handyman ${userId}`);
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user type. Must be either "client" or "handyman"',
+      });
+    }
+
+    // Get booking IDs
+    const bookingIds = bookings.map(booking => booking._id?.toString() || '');
+
+    // Get chats for these bookings
+    const chats = await Chat.find({ 
+      bookingId: { $in: bookingIds } 
+    }).sort({ lastMessageAt: -1 });
+
+    console.log(`📥 Found ${chats.length} chats for ${bookingIds.length} bookings`);
+
+    // Enrich chats with booking information
+    const enrichedChats = chats.map(chat => {
+      const booking = bookings.find(b => b._id?.toString() === chat.bookingId);
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      
+      return {
+        bookingId: chat.bookingId,
+        lastMessage: lastMessage ? {
+          senderName: lastMessage.senderName,
+          message: lastMessage.message,
+          timestamp: lastMessage.timestamp,
+        } : null,
+        lastMessageAt: chat.lastMessageAt,
+        booking: booking ? {
+          serviceName: booking.serviceName,
+          providerName: booking.providerName,
+          status: booking.status,
+          scheduledTime: booking.scheduledTime,
+        } : null,
+        unreadCount: chat.messages.filter(msg => 
+          msg.senderId !== userId && 
+          new Date(msg.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+        ).length,
+      };
+    });
 
     res.json({
       success: true,
       message: 'User chats retrieved successfully',
-      data: [],
+      data: enrichedChats,
     });
+
+    console.log(`📥 Returning ${enrichedChats.length} enriched chats`);
   } catch (error) {
     console.error('Error getting user chats:', error);
     res.status(500).json({
