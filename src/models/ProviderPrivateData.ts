@@ -10,7 +10,11 @@ export interface IProviderPrivateDataDocument extends Document {
   experience: number;
   certifications: string[];
   services: string[];
-  location: string; // Simple location string
+  location: string; // Simple location string (e.g., "Kandy")
+  coordinates?: { // Coordinates for distance calculations
+    lat: number;
+    lng: number;
+  };
   address?: { // Make address optional
     street?: string;
     city?: string;
@@ -86,6 +90,10 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     required: true,
     trim: true,
+  },
+  coordinates: {
+    lat: Number,
+    lng: Number,
   },
   address: {
     street: {

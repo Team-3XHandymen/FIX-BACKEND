@@ -35,11 +35,9 @@ const paymentSchema = new Schema<IPaymentDocument>({
   paymentIntentId: {
     type: String,
     required: true,
-    unique: true,
   },
   sessionId: {
     type: String,
-    sparse: true, // Allow multiple null values
   },
   amountCents: {
     type: Number,

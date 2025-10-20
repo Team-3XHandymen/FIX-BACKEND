@@ -16,7 +16,11 @@ export interface IClientDocument extends Document {
       lng: number;
     };
   }; // Optional until profile completion
-  location?: string; // Optional until profile completion
+  location?: string; // Location string (e.g., "Kandy")
+  coordinates?: { // Coordinates for distance calculations
+    lat: number;
+    lng: number;
+  };
   rating?: number;
   preferences?: {
     preferredServices?: string[];
@@ -81,6 +85,10 @@ const clientSchema = new Schema<IClientDocument>({
     type: String,
     required: false,
     trim: true,
+  },
+  coordinates: {
+    lat: Number,
+    lng: Number,
   },
   rating: {
     type: Number,
