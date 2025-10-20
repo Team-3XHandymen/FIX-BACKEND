@@ -42,12 +42,10 @@ const stripeAccountSchema = new Schema<IStripeAccountDocument>({
   userId: {
     type: String,
     required: true,
-    unique: true,
   },
   accountId: {
     type: String,
     required: true,
-    unique: true,
   },
   accountType: {
     type: String,

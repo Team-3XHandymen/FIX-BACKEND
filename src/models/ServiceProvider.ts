@@ -6,7 +6,11 @@ export interface IServiceProviderDocument extends Document {
   serviceIds: string[];
   experience: string;
   rating: number;
-  location: string; // Simple location string
+  location: string; // Simple location string (e.g., "Kandy")
+  coordinates?: { // Coordinates for distance calculations
+    lat: number;
+    lng: number;
+  };
   bio: string;
   doneJobsCount: number;
   availability: {
@@ -43,6 +47,10 @@ const serviceProviderSchema = new Schema<IServiceProviderDocument>({
     type: String,
     required: true,
     trim: true,
+  },
+  coordinates: {
+    lat: Number,
+    lng: Number,
   },
   bio: {
     type: String,

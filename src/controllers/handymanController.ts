@@ -157,6 +157,12 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       }
     }
 
+    // Extract coordinates from request if provided
+    const coordinates = req.body.coordinates ? {
+      lat: req.body.coordinates.lat,
+      lng: req.body.coordinates.lng
+    } : undefined;
+
     // Create new handyman private data with default values for optional fields
     const handymanPrivateData = new ProviderPrivateData({
       userId,
@@ -169,6 +175,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       certifications: certifications || [],
       services: serviceIds, // Only service IDs, no skills array
       location: location, // Use the location field directly
+      coordinates: coordinates, // Add coordinates for distance calculations
       availability: {
         workingDays: availability.workingDays,
         workingHours: availability.workingHours,
@@ -191,6 +198,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       experience: `${experience} years`,
       rating: 0,
       location: location, // Use the location field directly
+      coordinates: coordinates, // Add coordinates for distance calculations
       bio: `Experienced handyman with ${experience} years of experience.`,
       doneJobsCount: 0,
       availability: {},
@@ -335,13 +343,16 @@ export const updateHandymanProfile = async (req: Request, res: Response): Promis
     }
 
     // Also update the public service provider profile if relevant fields changed
-    if (updates.services || updates.experience || updates.location) {
+    if (updates.services || updates.experience || updates.location || updates.coordinates) {
       const serviceProviderUpdates: any = {};
       
       if (updates.services) serviceProviderUpdates.serviceIds = updates.services;
       if (updates.experience) serviceProviderUpdates.experience = `${updates.experience} years`;
       if (updates.location) {
         serviceProviderUpdates.location = updates.location;
+      }
+      if (updates.coordinates) {
+        serviceProviderUpdates.coordinates = updates.coordinates;
       }
 
       await ServiceProvider.findOneAndUpdate(

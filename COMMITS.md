@@ -155,5 +155,18 @@ Changes made:
     •   Updated CORS configuration to support both local and production URLs via FRONTEND_URL environment variable
     •   Added FRONTEND_URL to environment configuration
     •   Updated .gitignore to exclude dist/ folder and log files
+    •   Fixed duplicate Mongoose index warnings in StripeAccount and Payment models
 Notes: Backend is now ready for deployment on Render. Need to set environment variables on Render dashboard.
 Next step: Deploy backend on Render and configure environment variables.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 20/10/25
+Commit msg: "Client location integration and progress synchronization"
+Changes made: 
+    •  Enhanced updateClientProfile to support clear-location: if `location` is empty, location is cleared and `coordinates` are unset using $unset
+    •  Kept models unchanged (already support `location` string + `coordinates`); no migrations required
+    •  Ensured API remains backward compatible and aligned with frontend progress logic and map‑only commit behavior
+    • Fixed the location integration in the service provider registration form. now it lets the customer enter a close location and show suggestions then once the suggestion is selected it allows the user to adjust the location by moving the pin.
+    • The same was added to the client profile to grab the precise location.
+Notes: Backend now cleanly handles setting and removing client location/coordinates so client profile and dashboard progress remain consistent.
+Next steps: Adjusting the database schemas to save co ordinates of the clients'and serviceproviders' location for distance calculation.
