@@ -14,6 +14,6 @@ router.get('/:bookingId/messages', getChatMessages);
 router.post('/send', sendMessage);
 
 // Get all chats for a user
-router.get('/user/:userId', getUserChats);
+router.get('/user', getUserChats);
 
 export default router;
