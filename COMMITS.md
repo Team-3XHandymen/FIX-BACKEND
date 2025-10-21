@@ -170,3 +170,9 @@ Changes made:
     • The same was added to the client profile to grab the precise location.
 Notes: Backend now cleanly handles setting and removing client location/coordinates so client profile and dashboard progress remain consistent.
 Next steps: Adjusting the database schemas to save co ordinates of the clients'and serviceproviders' location for distance calculation.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 21/10/25
+Commit msg: "Attempted to improve the recent msgs component in the dashboard"
+Changes made: 
+    •  -
