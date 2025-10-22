@@ -20,6 +20,9 @@
     "declaration": false,
     "removeComments": true,
     "noEmitOnError": false
+
+    
+
   },
   "include": [
     "src/**/*"
