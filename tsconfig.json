@@ -2,13 +2,24 @@
   "compilerOptions": {
     "sourceMap": true,
     "outDir": "./dist",
-    "strict": true,
-    "lib": ["esnext"],
+    "strict": false,
+    "lib": ["es2017"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "module": "commonjs",
-    "target": "es2016",
-    "forceConsistentCasingInFileNames": true
+    "target": "es2017",
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "declaration": false,
+    "removeComments": true,
+    "noEmitOnError": false
   },
   "include": [
     "src/**/*"
