@@ -2,9 +2,11 @@ import express from 'express';
 import {
   registerHandyman,
   getHandymanProfile,
+  getHandymanProfileByUserId,
   updateHandymanProfile,
   getAllHandymen,
-  getServiceProvidersByServiceId
+  getServiceProvidersByServiceId,
+  getAvailableServices
 } from '../controllers/handymanController';
 import { auth, requireProvider } from '../middleware/auth';
 
@@ -12,6 +14,8 @@ const router = express.Router();
 
 // Public routes (no authentication required)
 router.post('/register', registerHandyman);
+router.get('/services', getAvailableServices); // New route for available services
+router.get('/profile/:userId', getHandymanProfileByUserId); // Route to check if user is handyman
 
 // Protected routes (require authentication)
 router.get('/profile', auth, getHandymanProfile);

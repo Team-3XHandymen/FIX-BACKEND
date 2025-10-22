@@ -1,22 +1,9 @@
-import { Router } from 'express';
-import { AuthController } from '../controllers/authController';
-import { WebhookController } from '../controllers/webhookController';
+import express from 'express';
+import { verifyUserRole } from '../controllers/authController';
 
-const router = Router();
+const router = express.Router();
 
-// Create new user in database after Clerk authentication
-router.post('/create-user', AuthController.createUser);
-
-// Get user profile by Clerk user ID and type
-router.get('/profile/:clerkUserId/:userType', AuthController.getUserProfile);
-
-// Update user profile
-router.put('/profile/:clerkUserId/:userType', AuthController.updateUserProfile);
-
-// Delete user account
-router.delete('/profile/:clerkUserId/:userType', AuthController.deleteUser);
-
-// Clerk webhook endpoint
-router.post('/webhook', WebhookController.handleClerkWebhook);
+// Verify user role from database
+router.get('/verify-role/:userId', verifyUserRole);
 
 export default router;
