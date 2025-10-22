@@ -8,8 +8,17 @@
     "skipLibCheck": true,
     "module": "commonjs",
     "target": "es2016",
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
   },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src/scripts/**/*",
+    "node_modules",
+    "dist"
+  ],
   "ts-node": {
     "files": true
   }
