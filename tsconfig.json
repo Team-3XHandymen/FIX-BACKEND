@@ -20,19 +20,10 @@
     "declaration": false,
     "removeComments": true,
     "noEmitOnError": false,
-    "typeRoots": ["./node_modules/@types"],
     "types": ["node"],
     "moduleDetection": "force"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "src/scripts/**/*",
-    "node_modules",
-    "dist"
-  ],
-  "ts-node": {
-    "files": true
-  }
+  "include": ["src/**/*"],
+  "exclude": ["src/scripts/**/*", "node_modules", "dist"],
+  "ts-node": { "files": true }
 }
