@@ -20,7 +20,6 @@
     "declaration": false,
     "removeComments": true,
     "noEmitOnError": false,
-    "types": ["node"],
     "moduleDetection": "force"
   },
   "include": ["src/**/*"],
