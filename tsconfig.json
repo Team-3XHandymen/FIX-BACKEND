@@ -21,7 +21,8 @@
     "removeComments": true,
     "noEmitOnError": false,
     "moduleDetection": "force",
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["src/scripts/**/*", "node_modules", "dist"],

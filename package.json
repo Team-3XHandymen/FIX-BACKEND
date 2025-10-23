@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
+    "build": "npm install --production=false && tsc",
     "start": "node dist/index.js",
     "seed:all": "ts-node src/scripts/seedAllData.ts",
     "migrate:bookings": "ts-node src/scripts/migrateBookings.ts",
