@@ -20,7 +20,9 @@
     "declaration": false,
     "removeComments": true,
     "noEmitOnError": false,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node"],
+    "moduleDetection": "force"
   },
   "include": [
     "src/**/*"
