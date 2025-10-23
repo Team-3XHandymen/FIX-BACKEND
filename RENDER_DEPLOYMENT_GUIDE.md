@@ -69,7 +69,7 @@ Click on **"Advanced"** and add the following environment variables:
 MONGODB_URI=<your-mongodb-atlas-connection-string>
 
 # Server
-NODE_ENV=production
+NODE_ENV=development
 PORT=3001
 
 # Frontend URL (will be updated after frontend deployment)
