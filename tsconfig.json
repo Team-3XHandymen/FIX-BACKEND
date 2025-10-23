@@ -20,7 +20,8 @@
     "declaration": false,
     "removeComments": true,
     "noEmitOnError": false,
-    "moduleDetection": "force"
+    "moduleDetection": "force",
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/**/*"],
   "exclude": ["src/scripts/**/*", "node_modules", "dist"],
