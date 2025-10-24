@@ -15,6 +15,15 @@ import { auth, requireClient, requireProvider } from '../middleware/auth';
 
 const router = express.Router();
 
+// Test endpoint to verify route is working
+router.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Bookings route is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Public route to get bookings by provider ID (for handyman dashboard)
 // This route is public and doesn't require authentication
 router.get('/provider/:providerId', getBookingsByProviderId);
