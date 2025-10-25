@@ -198,3 +198,13 @@ Changes made:
     •  Enhanced CORS configuration in the index.ts file.
     •  Added debugging to auth middleware
     •  Added the frontend URL to the Google maps refererrs under application restrictions 
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 25/10/25
+Commit msg: "Recent messages Api fix"
+Changes made: 
+    •  getUserChats API call had inconsistent URL patterns. 
+        ClientAPI and HandymanAPI: /chat/user?userId=${userId}&userType=${userType} ✅
+        ChatAPI: /chat/user/${userId}?userType=${userType} ❌
+     As a solution, Fixed the ChatAPI to use the correct query parameter format that matches what the backend expects.
+    •  
