@@ -22,6 +22,7 @@ router.get('/provider-account/:userId', StripeController.getProviderAccountStatu
 // Payment routes
 router.post('/create-checkout-session', StripeController.createCheckoutSession);
 router.get('/payment/booking/:bookingId', StripeController.getPaymentByBookingId);
+router.post('/create-manual-payment', StripeController.createManualPayment);
 router.post('/refund/:paymentId', requireProvider, StripeController.createRefund);
 
 export default router;
