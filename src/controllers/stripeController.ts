@@ -31,7 +31,7 @@ export class StripeController {
           data: {
             accountId: existingAccount.accountId,
             onboardingUrl: existingAccount.requirements.currentlyDue.length > 0 
-              ? await this.createOnboardingLink(existingAccount.accountId)
+              ? await StripeController.createOnboardingLink(existingAccount.accountId)
               : null,
           },
         } as ApiResponse);
@@ -79,7 +79,7 @@ export class StripeController {
       await stripeAccount.save();
 
       // Create onboarding link
-      const onboardingUrl = await this.createOnboardingLink(account.id);
+      const onboardingUrl = await StripeController.createOnboardingLink(account.id);
 
       res.status(201).json({
         success: true,
@@ -131,6 +131,32 @@ export class StripeController {
 
       // Get fresh account data from Stripe
       const account = await stripe.accounts.retrieve(stripeAccount.accountId);
+      
+      // Debug logging
+      console.log('🔍 Stripe Account Debug Info:', {
+        accountId: account.id,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+        detailsSubmitted: account.details_submitted,
+        requirements: account.requirements,
+        capabilities: account.capabilities,
+        businessProfile: account.business_profile,
+        country: account.country,
+        type: account.type,
+        created: account.created,
+      });
+      
+      // Additional debug for requirements
+      if (account.requirements) {
+        console.log('📋 Requirements Details:', {
+          currentlyDue: account.requirements.currently_due,
+          eventuallyDue: account.requirements.eventually_due,
+          pastDue: account.requirements.past_due,
+          pendingVerification: account.requirements.pending_verification,
+          disabledReason: account.requirements.disabled_reason,
+          currentDeadline: account.requirements.current_deadline,
+        });
+      }
 
       // Update local data
       await StripeAccount.findByIdAndUpdate(stripeAccount._id, {
@@ -151,7 +177,7 @@ export class StripeController {
       });
 
       const needsOnboarding = account.requirements?.currently_due && account.requirements.currently_due.length > 0;
-      const onboardingUrl = needsOnboarding ? await this.createOnboardingLink(account.id) : null;
+      const onboardingUrl = needsOnboarding ? await StripeController.createOnboardingLink(account.id) : null;
 
       res.json({
         success: true,
@@ -420,6 +446,92 @@ export class StripeController {
       res.status(500).json({
         success: false,
         message: 'Failed to create refund',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      } as ApiResponse);
+    }
+  }
+
+  /**
+   * Manual payment creation for testing (when webhooks don't work)
+   */
+  static async createManualPayment(req: Request, res: Response) {
+    try {
+      const { bookingId, sessionId } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        } as ApiResponse);
+      }
+
+      if (!bookingId || !sessionId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Booking ID and Session ID are required',
+        } as ApiResponse);
+      }
+
+      // Get the session from Stripe
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (!session.payment_intent) {
+        return res.status(400).json({
+          success: false,
+          message: 'No payment intent found in session',
+        } as ApiResponse);
+      }
+
+      // Get the payment intent
+      const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+
+      // Get booking details
+      const booking = await Booking.findById(bookingId);
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Booking not found',
+        } as ApiResponse);
+      }
+
+      // Create payment record
+      const payment = new Payment({
+        bookingId,
+        paymentIntentId: paymentIntent.id,
+        sessionId: session.id,
+        amountCents: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: 'succeeded',
+        applicationFeeCents: paymentIntent.application_fee_amount || 0,
+        providerAccountId: paymentIntent.transfer_data?.destination || '',
+        clientId: booking.clientId,
+        providerId: booking.providerId,
+        metadata: {
+          bookingId,
+          serviceName: booking.serviceName,
+          providerName: booking.providerName,
+        },
+      });
+
+      await payment.save();
+
+      // Update booking status to 'paid'
+      await Booking.findByIdAndUpdate(bookingId, { status: 'paid' });
+
+      console.log('✅ Manual payment record created for booking:', bookingId);
+
+      res.json({
+        success: true,
+        message: 'Payment record created successfully',
+        data: payment,
+      } as ApiResponse);
+
+    } catch (error: any) {
+      console.error('Error creating manual payment:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create payment record',
         error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
       } as ApiResponse);
     }
