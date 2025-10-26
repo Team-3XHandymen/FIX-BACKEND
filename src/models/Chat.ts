@@ -11,6 +11,9 @@ export interface IChatDocument extends Document {
   bookingId: string;
   messages: IChatMessage[];
   lastMessageAt: Date;
+  // Track the last time each user read messages
+  lastReadByClient?: Date;
+  lastReadByProvider?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +48,12 @@ const chatSchema = new Schema<IChatDocument>({
   lastMessageAt: {
     type: Date,
     default: Date.now,
+  },
+  lastReadByClient: {
+    type: Date,
+  },
+  lastReadByProvider: {
+    type: Date,
   },
 }, {
   timestamps: true,

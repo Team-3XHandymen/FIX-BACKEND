@@ -230,4 +230,40 @@ Changes made:
     • Stripe Account Setup
     Issue: Handyman account showing as "disabled" despite completing requirements
     Solution: Added debug logging and refresh functionality to ProviderPaymentSetup.tsx
-    
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 26/10/25
+Commit msg: "Improvements on the payment logic and chat interface"
+Changes made: 
+    •  Remove the view booking details button from the payment success page.
+    •  Implementing payment tracking for handymen
+    •  Added getPaymentsByProvider() in backend controller
+    •  Now, since there is a platform fee of 20% that should be added to the agreed fee then that should be the payment amount. then that amount minus platform should be added to the total earnings of the handyman .. Implementation: StipeControllers code was modified to harge the client the full amount (including the 20% platform fee) and calculate the application fee accordingly. Then the total earnings logic was modified to add only the service provider's part of the payment.
+    •  Stripe rejected using application_fee_amount and transfer_data[amount] together. Use one or the other.
+        Fix applied
+            Removed application_fee_amount
+            Using transfer_data[amount]
+            Platform keeps the difference
+    •  Sorting added to different bookings sections like recent, ongoing, action required to sort the bookings relatively.
+    Added status change history to the Booking model:
+    Tracks when and who changed the status
+    Records status changes (accepted, paid, done, etc.)
+    Booking controllers track history on status changes:
+    Provider actions (accept, reject) stored with changedBy: 'provider'
+    Client actions (pay, complete) stored with changedBy: 'client'
+    •  Read/unread message tracking
+    Chat model (FIX-BACKEND/src/models/Chat.ts)
+    Added lastReadByClient and lastReadByProvider
+    Fields track the last time each user read messages
+    Chat controller (FIX-BACKEND/src/controllers/chatController.ts)
+    Updated getChatMessages to return read timestamps
+    Adjusted getUserChats to compute unread count from last read time
+    Added markMessagesAsRead endpoint to update read status
+    Chat routes (FIX-BACKEND/src/routes/chat.routes.ts)
+    Added /chat/:bookingId/mark-read to mark messages as read
+    How it works
+    Unread count:
+    When the chat opens, call mark-as-read to record the read timestamp
+    On fetch, compare message timestamps to the last read time
+    Only show messages received after the last read time
+Next steps: More Improvements needed for chat interface integrations
