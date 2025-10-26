@@ -10,6 +10,11 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
     const { description, location, providerId, serviceId, scheduledTime }: CreateBookingRequest = req.body;
     const clientId = req.user!.id; // From auth middleware
     
+    // Get client name
+    const { Client } = await import('../models/Client');
+    const client = await Client.findOne({ userId: clientId });
+    const clientName = client?.name || client?.username || 'Client';
+    
     // Validate that the provider exists and get their name
     const provider = await ServiceProvider.findOne({ userId: providerId });
     if (!provider) {
@@ -46,11 +51,17 @@ export const createBooking = async (req: Request, res: Response): Promise<void> 
       clientId,
       providerId,
       serviceId,
+      clientName, // Store client name directly
       providerName: provider.name, // Store provider name directly
       serviceName: service.name,   // Store service name directly
       scheduledTime: new Date(scheduledTime),
       status: 'pending',
       fee: null, // Will be set by provider when accepting
+      statusChangeHistory: [{
+        status: 'pending',
+        changedAt: new Date(),
+        changedBy: 'client', // Initial creation by client
+      }],
     });
     
     await booking.save();
@@ -501,9 +512,20 @@ export const updateBookingStatusPublic = async (req: Request, res: Response): Pr
       return;
     }
     
-    // Update booking
+    // Update booking with status history
     const updates: any = { status };
     if (fee !== undefined) updates.fee = fee;
+    
+    // Add status change to history - only add if it's actually changing
+    if (booking.status !== status) {
+      updates.$push = {
+        statusChangeHistory: {
+          status: status,
+          changedAt: new Date(),
+          changedBy: 'provider',
+        },
+      };
+    }
     
     const updatedBooking = await Booking.findByIdAndUpdate(
       id,
@@ -596,10 +618,23 @@ export const updateBookingStatusClient = async (req: Request, res: Response): Pr
       return;
     }
     
-    // Update booking
+    // Update booking with status history
+    const updates: any = { status };
+    
+    // Add status change to history - only add if it's actually changing
+    if (booking.status !== status) {
+      updates.$push = {
+        statusChangeHistory: {
+          status: status,
+          changedAt: new Date(),
+          changedBy: 'client',
+        },
+      };
+    }
+    
     const updatedBooking = await Booking.findByIdAndUpdate(
       id,
-      { status },
+      updates,
       { new: true, runValidators: true }
     );
     

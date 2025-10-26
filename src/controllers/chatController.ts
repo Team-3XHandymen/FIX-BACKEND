@@ -36,6 +36,8 @@ export const getChatMessages = async (req: Request, res: Response) => {
         bookingId: chat.bookingId,
         messages: chat.messages,
         lastMessageAt: chat.lastMessageAt,
+        lastReadByClient: chat.lastReadByClient,
+        lastReadByProvider: chat.lastReadByProvider,
       },
     };
 
@@ -151,6 +153,18 @@ export const getUserChats = async (req: Request, res: Response) => {
       const booking = bookings.find(b => b._id?.toString() === chat.bookingId);
       const lastMessage = chat.messages[chat.messages.length - 1];
       
+      // Calculate unread count based on last read time
+      const lastReadTime = userType === 'client' 
+        ? chat.lastReadByClient 
+        : chat.lastReadByProvider;
+      
+      const unreadCount = lastReadTime 
+        ? chat.messages.filter(msg => 
+            msg.senderId !== userId && 
+            new Date(msg.timestamp) > new Date(lastReadTime)
+          ).length
+        : chat.messages.filter(msg => msg.senderId !== userId).length;
+      
       return {
         bookingId: chat.bookingId,
         lastMessage: lastMessage ? {
@@ -159,16 +173,13 @@ export const getUserChats = async (req: Request, res: Response) => {
           timestamp: lastMessage.timestamp,
         } : null,
         lastMessageAt: chat.lastMessageAt,
+        unreadCount,
         booking: booking ? {
           serviceName: booking.serviceName,
           providerName: booking.providerName,
           status: booking.status,
           scheduledTime: booking.scheduledTime,
         } : null,
-        unreadCount: chat.messages.filter(msg => 
-          msg.senderId !== userId && 
-          new Date(msg.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-        ).length,
       };
     });
 
@@ -184,6 +195,64 @@ export const getUserChats = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve user chats',
+    });
+  }
+};
+
+// Mark messages as read for a specific user (client or provider)
+export const markMessagesAsRead = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const { userId, userType } = req.body;
+
+    console.log('📖 markMessagesAsRead called for:', { bookingId, userId, userType });
+
+    if (!bookingId || !userId || !userType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Booking ID, user ID, and user type are required',
+      });
+    }
+
+    if (!['client', 'provider'].includes(userType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user type. Must be either "client" or "provider"',
+      });
+    }
+
+    const updateField = userType === 'client' 
+      ? { lastReadByClient: new Date() }
+      : { lastReadByProvider: new Date() };
+
+    const chat = await Chat.findOneAndUpdate(
+      { bookingId },
+      updateField,
+      { new: true }
+    );
+
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat not found',
+      });
+    }
+
+    console.log('📖 Messages marked as read for:', userType);
+
+    res.json({
+      success: true,
+      message: 'Messages marked as read successfully',
+      data: {
+        lastReadByClient: chat.lastReadByClient,
+        lastReadByProvider: chat.lastReadByProvider,
+      },
+    });
+  } catch (error) {
+    console.error('❌ Error marking messages as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark messages as read',
     });
   }
 };

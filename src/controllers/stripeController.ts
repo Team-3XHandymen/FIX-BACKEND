@@ -269,8 +269,13 @@ export class StripeController {
       const client = await Client.findOne({ userId: booking.clientId });
       const provider = await ServiceProvider.findOne({ userId: booking.providerId });
 
-      const amountCents = formatAmountForStripe(booking.fee);
-      const applicationFeeCents = calculateApplicationFee(amountCents);
+      // Calculate total amount: booking.fee is handyman's agreed fee, add 20% platform fee
+      const totalAmount = booking.fee * 1.2;
+      const amountCents = formatAmountForStripe(totalAmount);
+      
+      // Amount to transfer to handyman is their agreed fee (80% of total)
+      // Platform automatically keeps the difference (20%)
+      const transferAmountCents = Math.round(booking.fee * 100);
 
       // Create checkout session
       const session = await stripe.checkout.sessions.create({
@@ -290,9 +295,9 @@ export class StripeController {
         ],
         mode: 'payment',
         payment_intent_data: {
-          application_fee_amount: applicationFeeCents,
           transfer_data: {
             destination: providerStripeAccount.accountId,
+            amount: transferAmountCents,
           },
           metadata: {
             bookingId: bookingId,
@@ -369,6 +374,51 @@ export class StripeController {
 
     } catch (error: any) {
       console.error('Error getting payment:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get payment details',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      } as ApiResponse);
+    }
+  }
+
+  /**
+   * Get all payments for a provider
+   */
+  static async getPaymentsByProvider(req: Request, res: Response) {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        } as ApiResponse);
+      }
+
+      const payments = await Payment.find({ providerId: userId })
+        .sort({ createdAt: -1 })
+        .limit(50);
+
+      // Calculate total earnings (amount minus platform fee) - this is what handyman receives
+      const totalEarnings = payments
+        .filter(p => p.status === 'succeeded')
+        .reduce((sum, p) => sum + ((p.amountCents / 100) - (p.applicationFeeCents / 100)), 0);
+
+      res.json({
+        success: true,
+        data: {
+          payments,
+          summary: {
+            totalEarnings,
+            pendingAmount: totalEarnings, // Same as total earnings for simplicity
+            transactionCount: payments.length,
+          },
+        },
+      } as ApiResponse);
+
+    } catch (error: any) {
+      console.error('Error getting provider payments:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to get payment details',
@@ -495,6 +545,11 @@ export class StripeController {
         } as ApiResponse);
       }
 
+      // Calculate application fee from transfer amount
+      // If transfer_data.amount exists, application fee = total - transfer amount
+      const transferAmount = paymentIntent.transfer_data?.amount || 0;
+      const applicationFeeCents = paymentIntent.amount - transferAmount;
+
       // Create payment record
       const payment = new Payment({
         bookingId,
@@ -503,7 +558,7 @@ export class StripeController {
         amountCents: paymentIntent.amount,
         currency: paymentIntent.currency,
         status: 'succeeded',
-        applicationFeeCents: paymentIntent.application_fee_amount || 0,
+        applicationFeeCents: applicationFeeCents,
         providerAccountId: paymentIntent.transfer_data?.destination || '',
         clientId: booking.clientId,
         providerId: booking.providerId,
