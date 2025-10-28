@@ -267,3 +267,22 @@ Changes made:
     On fetch, compare message timestamps to the last read time
     Only show messages received after the last read time
 Next steps: More Improvements needed for chat interface integrations
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 28/10/25
+Commit msg: "Implementing the review system"
+Changes made: 
+    * We already had some parts of the review system implemented on the codebase. So basically, we had to do some improvements. 
+    * Updated Review model (FIX-BACKEND/src/models/Review.ts)
+    Added fields: shortDescription, selectedIssues, and detailedFeedback
+    * Review controller (FIX-BACKEND/src/controllers/reviewController.ts)
+        createReview: creates reviews with the new fields
+        getProviderReviews: fetches all reviews for a provider
+        getBookingReview: fetches the review for a specific booking
+        Updates provider average rating after creatio
+    * Review routes (FIX-BACKEND/src/routes/reviews.routes.ts)
+        POST /api/reviews
+        GET /api/reviews/provider/:providerId
+        GET /api/reviews/booking/:bookingId
+    * Registered routes in index.ts
+    * Updated reviewController to allow reviews for done or completed bookings.
