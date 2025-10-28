@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/clients.routes';
 import chatRoutes from './routes/chat.routes';
 import stripeRoutes from './routes/stripe.routes';
+import reviewRoutes from './routes/reviews.routes';
 import { Chat } from './models/Chat';
 
 const app: Express = express();
@@ -80,6 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
