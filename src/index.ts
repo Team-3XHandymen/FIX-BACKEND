@@ -22,7 +22,7 @@ const allowedOrigins = [
   'http://localhost:8080',
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://fixfinder-frontend.netlify.app', // Your deployed frontend URL
+  'https://fix-frontend.netlify.app', // Your deployed frontend URL
   process.env.FRONTEND_URL || '', // Your deployed frontend URL from environment variables
 ].filter(Boolean); // Remove empty strings
 
