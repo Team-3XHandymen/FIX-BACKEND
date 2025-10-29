@@ -286,3 +286,20 @@ Changes made:
         GET /api/reviews/booking/:bookingId
     * Registered routes in index.ts
     * Updated reviewController to allow reviews for done or completed bookings.
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 29/10/25
+Commit msg: "Integrating twillio for in app calls"
+Changes made:
+    * Configuration: src/config/twilio.ts — Twilio SDK setup and token generation
+    Models: src/models/Call.ts — Call history tracking
+    * Controllers:
+        src/controllers/callController.ts — Call initiation, contact lookup, history
+        src/controllers/twilioWebhookController.ts — Webhook handlers
+    *Routes: src/routes/call.routes.ts — API endpoints registered in index.ts
+    * Environment: Updated env.ts with Twilio variables
+    * Two issues: JWT validation (API Key credentials) and Device initialization. The audio error is a consequence of the JWT error.
+    Fix: updated the credentials.
+    * Issue: Outdated client version: Updated the version. 
+    * Added the outbound Voice grant by Setting up the TwiML Account since there was an error that says outbound calls are not possible.
+     
