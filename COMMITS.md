@@ -302,4 +302,10 @@ Changes made:
     Fix: updated the credentials.
     * Issue: Outdated client version: Updated the version. 
     * Added the outbound Voice grant by Setting up the TwiML Account since there was an error that says outbound calls are not possible.
-     
+________________________________________________________________________________________________
+Collaborator name:Sewwandi
+Date: 13/11/25
+Commit msg: "Made it mobile responsive"
+Changes made:
+    * Fixed the Language Switcher to not to translate the language options when the language is switched
+    * Made all the pages, components mobile responsive.
