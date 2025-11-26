@@ -15,6 +15,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       contactNumber,
       emailAddress,
       personalPhoto,
+      certificate,
       experience,
       certifications,
       services,
@@ -171,6 +172,7 @@ export const registerHandyman = async (req: Request, res: Response): Promise<voi
       contactNumber,
       emailAddress,
       personalPhoto: personalPhoto || '',
+      certificate: certificate || undefined, // Add certificate if provided
       experience,
       certifications: certifications || [],
       services: serviceIds, // Only service IDs, no skills array

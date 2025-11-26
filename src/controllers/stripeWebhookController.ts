@@ -128,6 +128,28 @@ export class StripeWebhookController {
       // Create notifications
       await this.createPaymentNotifications(clientId, providerId, bookingId, paymentIntent.amount);
 
+      // Create Google Calendar event if provider has connected calendar
+      try {
+        const { GoogleCalendarService } = await import('../services/googleCalendarService');
+        const booking = await Booking.findById(bookingId);
+        
+        if (booking && await GoogleCalendarService.isConnected(providerId)) {
+          await GoogleCalendarService.createBookingEvent(providerId, {
+            _id: booking._id.toString(),
+            serviceName: booking.serviceName,
+            clientName: booking.clientName,
+            scheduledTime: booking.scheduledTime,
+            location: booking.location,
+            description: booking.description,
+            fee: booking.fee,
+          });
+          console.log('✅ Google Calendar event created for booking:', bookingId);
+        }
+      } catch (calendarError: any) {
+        // Don't fail the payment if calendar event creation fails
+        console.error('⚠️ Failed to create calendar event (non-critical):', calendarError.message);
+      }
+
       console.log('✅ Payment record created and booking updated');
 
     } catch (error) {

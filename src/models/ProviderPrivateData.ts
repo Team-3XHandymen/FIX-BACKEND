@@ -9,6 +9,7 @@ export interface IProviderPrivateDataDocument extends Document {
   personalPhoto: string;
   experience: number;
   certifications: string[];
+  certificate?: string; // Base64 encoded certificate file
   services: string[];
   location: string; // Simple location string (e.g., "Kandy")
   coordinates?: { // Coordinates for distance calculations
@@ -82,6 +83,9 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     trim: true,
   }],
+  certificate: {
+    type: String, // Base64 encoded certificate file
+  },
   services: [{
     type: String,
     required: true,

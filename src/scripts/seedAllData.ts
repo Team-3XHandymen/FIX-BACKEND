@@ -123,7 +123,7 @@ const sampleClients = [
     userId: "client_002",
     username: "sarahjohnson",
     email: "sarah.johnson@example.com",
-    name: "Sarah Johnson",
+    name: "Samanthi Fonseka",
     mobileNumber: "+1234567891",
     address: {
       street: "456 Oak Ave",
