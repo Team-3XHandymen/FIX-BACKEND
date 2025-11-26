@@ -87,4 +87,40 @@ export const authorize = (...userTypes: string[]) => {
 export const requireClient = authorize('client');
 
 // Middleware to ensure user is a provider
-export const requireProvider = authorize('provider'); 
+export const requireProvider = authorize('provider');
+
+// Middleware to check if user is admin (checks X-Admin header)
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const userId = req.header('X-User-ID');
+    const isAdmin = req.header('X-Admin') === 'true';
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Access denied. User ID not provided.',
+      });
+      return;
+    }
+
+    if (!isAdmin) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.',
+      });
+      return;
+    }
+
+    req.user = {
+      id: userId,
+      type: 'admin' as any, // Admin is a special type
+    };
+    next();
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: 'Authentication failed.',
+    });
+    return;
+  }
+}; 

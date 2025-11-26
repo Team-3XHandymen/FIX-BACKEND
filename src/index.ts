@@ -13,6 +13,7 @@ import chatRoutes from './routes/chat.routes';
 import stripeRoutes from './routes/stripe.routes';
 import reviewRoutes from './routes/reviews.routes';
 import callRoutes from './routes/call.routes';
+import adminRoutes from './routes/admin.routes';
 import { Chat } from './models/Chat';
 
 const app: Express = express();
@@ -44,7 +45,7 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Type', 'X-Admin', 'x-admin'],
 }));
 
 // Handle preflight requests
@@ -52,7 +53,7 @@ app.options('*', cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Type', 'X-Admin', 'x-admin'],
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -85,6 +86,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/calls', callRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -168,6 +170,7 @@ console.log('  - /api/auth');
 console.log('  - /api/clients');
 console.log('  - /api/chat');
 console.log('  - /api/stripe');
+console.log('  - /api/admin');
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
