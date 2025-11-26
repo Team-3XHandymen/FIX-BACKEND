@@ -6,6 +6,9 @@ export interface IReviewDocument extends Document {
   to: string;   // Service Provider ID
   rating: number; // 1–5 stars
   comment: string;
+  shortDescription?: string; // Brief 1-2 word description
+  selectedIssues?: string[]; // Array of selected issue categories
+  detailedFeedback?: string; // Optional detailed feedback text
   createdAt: Date;
 }
 
@@ -35,6 +38,20 @@ const reviewSchema = new Schema<IReviewDocument>(
       required: true,
       trim: true,
       maxlength: 1000,
+    },
+    shortDescription: {
+      type: String,
+      trim: true,
+      maxlength: 50,
+    },
+    selectedIssues: {
+      type: [String],
+      default: [],
+    },
+    detailedFeedback: {
+      type: String,
+      trim: true,
+      maxlength: 5000,
     },
     createdAt: {
       type: Date,

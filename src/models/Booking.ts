@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBookingDocument extends Document {
-  status: 'pending' | 'confirmed' | 'cancelled' | 'done';
+  status: 'pending' | 'accepted' | 'rejected' | 'paid' | 'done' | 'completed';
   description: string;
   fee: number | null;
   location: {
@@ -15,16 +15,22 @@ export interface IBookingDocument extends Document {
   providerId: string; // Clerk User ID
   serviceId: string;
   // Store names directly for easy access
+  clientName?: string;
   providerName: string;
   serviceName: string;
   scheduledTime: Date;
   createdAt: Date;
+  statusChangeHistory?: Array<{
+    status: string;
+    changedAt: Date;
+    changedBy: 'client' | 'provider';
+  }>;
 }
 
 const bookingSchema = new Schema<IBookingDocument>({
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'done'],
+    enum: ['pending', 'accepted', 'rejected', 'paid', 'done', 'completed'],
     default: 'pending',
   },
   description: {
@@ -60,6 +66,9 @@ const bookingSchema = new Schema<IBookingDocument>({
     type: String,
     required: true,
   },
+  clientName: {
+    type: String,
+  },
   providerName: {
     type: String,
     required: true,
@@ -76,6 +85,14 @@ const bookingSchema = new Schema<IBookingDocument>({
     type: Date,
     default: Date.now,
   },
+  statusChangeHistory: [{
+    status: String,
+    changedAt: { type: Date, default: Date.now },
+    changedBy: {
+      type: String,
+      enum: ['client', 'provider'],
+    },
+  }],
 }, {
   timestamps: true,
 });

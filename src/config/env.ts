@@ -12,7 +12,7 @@ export const config = {
   // Database
   MONGODB_URI: process.env.MONGODB_URI || '',
   
-  // CORS
+  // CORS & Frontend
   CORS_ORIGIN: process.env.CORS_ORIGIN || '',
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   
@@ -38,6 +38,7 @@ export const config = {
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
   STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+  STRIPE_CONNECT_WEBHOOK_SECRET: process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '',
   
   // Cloud Storage (Cloudinary)
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
@@ -54,4 +55,13 @@ export const config = {
   ENABLE_CHAT: process.env.ENABLE_CHAT === 'true',
   ENABLE_NOTIFICATIONS: process.env.ENABLE_NOTIFICATIONS === 'true',
   ENABLE_PAYMENTS: process.env.ENABLE_PAYMENTS === 'true',
+  
+  // Twilio Configuration (Voice Calling)
+  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || '',
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
+  TWILIO_API_KEY_SID: process.env.TWILIO_API_KEY_SID || '',
+  TWILIO_API_KEY_SECRET: process.env.TWILIO_API_KEY_SECRET || '',
+  TWILIO_TWIML_APP_SID: process.env.TWILIO_TWIML_APP_SID || '',
+  TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '',
+  ENABLE_CALLING: process.env.ENABLE_CALLING === 'true',
 } as const; 

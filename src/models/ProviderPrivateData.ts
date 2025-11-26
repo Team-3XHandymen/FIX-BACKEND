@@ -7,15 +7,20 @@ export interface IProviderPrivateDataDocument extends Document {
   contactNumber: string;
   emailAddress: string;
   personalPhoto: string;
-  skills: string[];
   experience: number;
   certifications: string[];
+  certificate?: string; // Base64 encoded certificate file
   services: string[];
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
+  location: string; // Simple location string (e.g., "Kandy")
+  coordinates?: { // Coordinates for distance calculations
+    lat: number;
+    lng: number;
+  };
+  address?: { // Make address optional
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
     coordinates?: {
       lat: number;
       lng: number;
@@ -69,10 +74,6 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     required: true,
   },
-  skills: [{
-    type: String,
-    trim: true,
-  }],
   experience: {
     type: Number,
     required: true,
@@ -82,29 +83,37 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
     type: String,
     trim: true,
   }],
+  certificate: {
+    type: String, // Base64 encoded certificate file
+  },
   services: [{
     type: String,
     required: true,
   }],
+  location: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  coordinates: {
+    lat: Number,
+    lng: Number,
+  },
   address: {
     street: {
       type: String,
-      required: true,
       trim: true,
     },
     city: {
       type: String,
-      required: true,
       trim: true,
     },
     state: {
       type: String,
-      required: true,
       trim: true,
     },
     zipCode: {
       type: String,
-      required: true,
       trim: true,
     },
     coordinates: {
@@ -170,7 +179,7 @@ const providerPrivateDataSchema = new Schema<IProviderPrivateDataDocument>({
 providerPrivateDataSchema.index({ userId: 1 }, { unique: true, sparse: true  });                  // Unique index for userId
 providerPrivateDataSchema.index({ 'address.city': 1, 'address.state': 1 });        // For location-based filtering
 providerPrivateDataSchema.index({ services: 1 });                                  // For filtering by service
-providerPrivateDataSchema.index({ skills: 1 });                                    // For filtering by skills
+providerPrivateDataSchema.index({ location: 1 });                                  // For filtering by location
 
 export const ProviderPrivateData = mongoose.model<IProviderPrivateDataDocument>(
   'ProviderPrivateData',

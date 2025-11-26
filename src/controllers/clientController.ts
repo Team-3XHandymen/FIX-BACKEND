@@ -114,7 +114,7 @@ export const getClientByUserId = async (req: Request, res: Response): Promise<vo
 export const updateClientProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const updates = req.body;
+    const updates = req.body as any;
 
     // Remove fields that shouldn't be updated
     delete updates.userId;
@@ -123,9 +123,45 @@ export const updateClientProfile = async (req: Request, res: Response): Promise<
     delete updates.createdAt;
     delete updates.updatedAt;
 
+    // Build Mongo update with $set/$unset to properly clear fields
+    const setOps: Record<string, any> = {};
+    const unsetOps: Record<string, any> = {};
+
+    // Copy over allowed fields into $set
+    for (const [key, val] of Object.entries(updates)) {
+      // Special handling for location/coordinates clearing
+      if (key === 'location') {
+        if (typeof val === 'string' && val.trim() === '') {
+          // Explicitly cleared by user
+          setOps.location = '';
+          unsetOps.coordinates = 1; // remove coordinates completely
+        } else {
+          setOps.location = val;
+        }
+        continue;
+      }
+
+      if (key === 'coordinates') {
+        // If coordinates provided, set them; if undefined/null, unset
+        if (val && typeof val === 'object') {
+          setOps.coordinates = val;
+        } else {
+          unsetOps.coordinates = 1;
+        }
+        continue;
+      }
+
+      // Default passthrough for other fields
+      setOps[key] = val;
+    }
+
+    const mongoUpdate: any = {};
+    if (Object.keys(setOps).length) mongoUpdate.$set = setOps;
+    if (Object.keys(unsetOps).length) mongoUpdate.$unset = unsetOps;
+
     const client = await Client.findOneAndUpdate(
       { userId },
-      updates,
+      mongoUpdate,
       { new: true, runValidators: true }
     );
 

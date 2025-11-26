@@ -75,12 +75,39 @@ const sampleServices = [
     description: "Comprehensive pest control services for residential and commercial properties.",
     baseFee: 85,
     imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop"
+  },
+  // Adding missing services to match ServiceCatalog
+  {
+    name: "HVAC",
+    description: "Heating, ventilation, and air conditioning services including installation, repair, and maintenance.",
+    baseFee: 90,
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop"
+  },
+  {
+    name: "Security",
+    description: "Security system installation and maintenance including locks, alarms, and surveillance systems.",
+    baseFee: 95,
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop"
+  },
+  {
+    name: "Landscaping",
+    description: "Professional landscaping services including design, installation, and maintenance of outdoor spaces.",
+    baseFee: 70,
+    imageUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&h=400&fit=crop"
+  },
+  {
+    name: "Renovation",
+    description: "Complete home renovation and remodeling services for all types of projects.",
+    baseFee: 120,
+    imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=400&fit=crop"
   }
 ];
 
 const sampleClients = [
   {
     userId: "client_001",
+    username: "johnsmith",
+    email: "john.smith@example.com",
     name: "John Smith",
     mobileNumber: "+1234567890",
     address: {
@@ -94,7 +121,9 @@ const sampleClients = [
   },
   {
     userId: "client_002",
-    name: "Samanthi Rajapaksha",
+    username: "sarahjohnson",
+    email: "sarah.johnson@example.com",
+    name: "Samanthi Fonseka",
     mobileNumber: "+1234567891",
     address: {
       street: "456 Oak Ave",
@@ -107,6 +136,8 @@ const sampleClients = [
   },
   {
     userId: "client_003",
+    username: "mikedavis",
+    email: "mike.davis@example.com",
     name: "Mike Davis",
     mobileNumber: "+1234567892",
     address: {
@@ -120,6 +151,8 @@ const sampleClients = [
   },
   {
     userId: "client_004",
+    username: "emilywilson",
+    email: "emily.wilson@example.com",
     name: "Emily Wilson",
     mobileNumber: "+1234567893",
     address: {
@@ -133,6 +166,8 @@ const sampleClients = [
   },
   {
     userId: "client_005",
+    username: "davidbrown",
+    email: "david.brown@example.com",
     name: "David Brown",
     mobileNumber: "+1234567894",
     address: {
@@ -359,6 +394,8 @@ const seedAllData = async () => {
         clientId: randomClient.userId,
         providerId: randomProvider.userId,
         serviceId: randomService._id,
+        serviceName: randomService.name, // Add required serviceName field
+        providerName: randomProvider.name, // Add required providerName field
         scheduledTime: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date in next 30 days
         createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) // Random date in last 90 days
       };

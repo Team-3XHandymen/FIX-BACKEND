@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import http from 'http';
-import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import { connectDB } from './config/database';
 import { config } from './config/env';
 import serviceRoutes from './routes/services.routes';
@@ -9,44 +9,39 @@ import bookingRoutes from './routes/bookings.routes';
 import handymanRoutes from './routes/handyman.routes';
 import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/clients.routes';
+import chatRoutes from './routes/chat.routes';
+import stripeRoutes from './routes/stripe.routes';
+import reviewRoutes from './routes/reviews.routes';
+import callRoutes from './routes/call.routes';
+import { Chat } from './models/Chat';
 
 const app: Express = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
-// Configure allowed origins for CORS
+// CORS configuration - allow both local and production URLs
 const allowedOrigins = [
   'http://localhost:8080',
+  'http://localhost:8081',
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://fix-frontend.netlify.app',
-  config.CORS_ORIGIN,
-  config.FRONTEND_URL,
-].filter(Boolean) as string[];
+  'https://fix-frontend.netlify.app', // Your deployed frontend URL
+  process.env.FRONTEND_URL || '', // Your deployed frontend URL from environment variables
+].filter(Boolean); // Remove empty strings
 
-// Initialize Socket.io with CORS
-const io = new Server(server, {
+// Create Socket.io server
+const io = new SocketIOServer(server, {
   cors: {
     origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST'],
   },
 });
 
 // Connect to MongoDB
 connectDB();
 
-// CORS Middleware
+// Middleware
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-User-Type'],
@@ -63,10 +58,21 @@ app.options('*', cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req: Request, res: Response, next) => {
+// Debug middleware to log requests
+app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log('Headers:', req.headers);
   next();
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+    cors_origins: allowedOrigins
+  });
 });
 
 // Routes
@@ -75,17 +81,71 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/handyman', handymanRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/calls', callRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log(`🔌 User connected: ${socket.id}`);
 
+  // Join a specific booking room for chat
   socket.on('join_booking_room', (bookingId: string) => {
     socket.join(`booking_${bookingId}`);
     console.log(`📱 User ${socket.id} joined booking room: ${bookingId}`);
   });
 
-  socket.on('booking_status_update', (data: { bookingId: string; newStatus: string; userId: string }) => {
+  // Handle chat messages
+  socket.on('send_message', async (data: {
+    bookingId: string;
+    senderId: string;
+    senderName: string;
+    message: string;
+    timestamp: Date;
+  }) => {
+    try {
+      // Save message to database first
+      let chat = await Chat.findOne({ bookingId: data.bookingId });
+      
+      if (!chat) {
+        chat = new Chat({
+          bookingId: data.bookingId,
+          messages: [],
+        });
+      }
+
+      const newMessage = {
+        senderId: data.senderId,
+        senderName: data.senderName,
+        message: data.message,
+        timestamp: new Date(),
+      };
+
+      chat.messages.push(newMessage);
+      chat.lastMessageAt = new Date();
+      await chat.save();
+      
+      console.log(`💾 Message saved to database for booking ${data.bookingId}`);
+    } catch (error) {
+      console.error('❌ Error saving message to database:', error);
+    }
+
+    // Broadcast message to all users in the booking room
+    io.to(`booking_${data.bookingId}`).emit('receive_message', {
+      ...data,
+      timestamp: new Date(),
+    });
+    console.log(`💬 Message sent in booking ${data.bookingId}: ${data.message}`);
+  });
+
+  // Handle booking status updates
+  socket.on('booking_status_update', (data: {
+    bookingId: string;
+    newStatus: string;
+    userId: string;
+  }) => {
+    // Broadcast status update to all users in the booking room
     io.to(`booking_${data.bookingId}`).emit('booking_status_changed', {
       ...data,
       timestamp: new Date(),
@@ -93,6 +153,7 @@ io.on('connection', (socket) => {
     console.log(`🔄 Booking ${data.bookingId} status updated to: ${data.newStatus}`);
   });
 
+  // Handle disconnection
   socket.on('disconnect', () => {
     console.log(`🔌 User disconnected: ${socket.id}`);
   });
@@ -105,6 +166,8 @@ console.log('  - /api/bookings');
 console.log('  - /api/handyman');
 console.log('  - /api/auth');
 console.log('  - /api/clients');
+console.log('  - /api/chat');
+console.log('  - /api/stripe');
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -112,17 +175,6 @@ app.get('/health', (req: Request, res: Response) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString(),
-    cors_origins: allowedOrigins,
-  });
-});
-
-// API health check
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    message: 'API is running',
-    timestamp: new Date().toISOString(),
-    cors_origins: allowedOrigins,
   });
 });
 
@@ -155,6 +207,6 @@ app.use('*', (req: Request, res: Response) => {
 server.listen(config.PORT, () => {
   console.log(`🚀 Server is running on port ${config.PORT}`);
   console.log(`📊 Environment: ${config.NODE_ENV}`);
-  console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
-  console.log(`🔌 Socket.io enabled`);
-});
+  console.log(`🌐 CORS Origin: ${config.CORS_ORIGIN || 'Not configured'}`);
+  console.log(`🔌 WebSocket server is ready`);
+}); 

@@ -4,13 +4,47 @@ import {
   getMyBookings,
   getBookingById,
   updateBooking,
-  getPendingBookings
+  getPendingBookings,
+  getBookingsByProviderId,
+  getBookingsByClerkUserId,
+  getBookingsByProviderDatabaseId,
+  updateBookingStatusPublic,
+  updateBookingStatusClient
 } from '../controllers/bookingController';
 import { auth, requireClient, requireProvider } from '../middleware/auth';
 
 const router = express.Router();
 
-// All booking routes require authentication
+// Test endpoint to verify route is working
+router.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Bookings route is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Public route to get bookings by provider ID (for handyman dashboard)
+// This route is public and doesn't require authentication
+router.get('/provider/:providerId', getBookingsByProviderId);
+
+// Public route to get bookings by Clerk userId (for handyman dashboard)
+// This route is public and doesn't require authentication
+router.get('/provider-clerk/:clerkUserId', getBookingsByClerkUserId);
+
+// Public route to get bookings by provider database ID directly
+// This route is public and doesn't require authentication
+router.get('/provider-db/:providerDatabaseId', getBookingsByProviderDatabaseId);
+
+// Public route to update booking status (for handyman dashboard)
+// This route is public and doesn't require authentication
+router.patch('/:id/status-public', updateBookingStatusPublic);
+
+// Public route to update booking status (for client dashboard)
+// This route is public and doesn't require authentication
+router.patch('/:id/status-client', updateBookingStatusClient);
+
+// All other booking routes require authentication
 router.use(auth);
 
 // Client routes
