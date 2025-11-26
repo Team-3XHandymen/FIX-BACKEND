@@ -13,6 +13,7 @@ import chatRoutes from './routes/chat.routes';
 import stripeRoutes from './routes/stripe.routes';
 import reviewRoutes from './routes/reviews.routes';
 import callRoutes from './routes/call.routes';
+import googleCalendarRoutes from './routes/googleCalendar.routes';
 import { Chat } from './models/Chat';
 
 const app: Express = express();
@@ -21,6 +22,7 @@ const server = createServer(app);
 // CORS configuration - allow both local and production URLs
 const allowedOrigins = [
   'http://localhost:8080',
+  'http://localhost:8081',
   'http://localhost:5173',
   'http://localhost:3000',
   'https://fix-frontend.netlify.app', // Your deployed frontend URL
@@ -84,6 +86,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/calls', callRoutes);
+app.use('/api/google-calendar', googleCalendarRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
