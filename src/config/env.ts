@@ -14,6 +14,7 @@ export const config = {
   
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN || '',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Authentication (Clerk)
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || '',

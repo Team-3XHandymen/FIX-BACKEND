@@ -94,7 +94,7 @@ const sampleClients = [
   },
   {
     userId: "client_002",
-    name: "Sarah Johnson",
+    name: "Samanthi Rajapaksha",
     mobileNumber: "+1234567891",
     address: {
       street: "456 Oak Ave",
